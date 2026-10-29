@@ -22,14 +22,6 @@ public class PageCommandTests
     }
 
     [Fact]
-    public void Item_weight_reads_as_a_number_in_any_culture()
-    {
-        Assert.Equal(new PageCommand.SetItemWeight(0.75), PageCommand.Parse("slmod|packrat|setting|ItemWeight|0.75"));
-        Assert.IsType<PageCommand.Unknown>(PageCommand.Parse("slmod|packrat|setting|ItemWeight|NaN"));
-        Assert.IsType<PageCommand.Unknown>(PageCommand.Parse("slmod|packrat|setting|ItemWeight|heavy"));
-    }
-
-    [Fact]
     public void Other_messages_are_not_acted_on()
     {
         Assert.False(PageCommand.IsOurs("slmod|newloopplus|load"));

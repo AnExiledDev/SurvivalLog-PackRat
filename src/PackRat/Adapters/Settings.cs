@@ -97,6 +97,9 @@ internal sealed class Settings
         private const string ShowWhenCustom = "ModManager.ShowWhen=Overweight=" + Core.Overweight.CustomName;
         private const string Advanced = "ModManager.Advanced";
 
+        // The Mod Manager shows these in place of the choice in Chinese; the value written to the file stays English.
+        private const string ChoiceZh = "ModManager.ChoiceZh=";
+
         public static ConfigEntry<double> CarryWeight(ConfigFile config) => config.Bind(Weight, "CarryWeight", 2.0,
             $"How many times more weight every bag, storage piece and vehicle can hold. 2 means twice the game's limit; 1 is the game's own. Places with no weight limit stay without one. The Inventories tab can set a limit for one bag or piece. From {Core.CarryWeight.MinMultiplier} to {Core.CarryWeight.MaxMultiplier}. Takes effect the next time you load a save.\n" +
             $"所有背包、储物家具和载具的负重上限倍数。2 表示游戏原有负重上限的两倍，1 为游戏原值。原本没有负重上限的地方仍然没有上限。「库存」页面可以为单个背包或家具设置上限。范围 {Core.CarryWeight.MinMultiplier} 到 {Core.CarryWeight.MaxMultiplier}。下次读取存档时生效。");
@@ -108,17 +111,17 @@ internal sealed class Settings
 
         public static ConfigEntry<string> Overweight(ConfigFile config) => config.Bind(Weight, "Overweight", Core.Overweight.DefaultName, new ConfigDescription(
             "What happens when you carry close to your weight limit. Default: the game slows you down from 80% of the limit. Custom: you choose where the slowdown starts and how strong it is. Hard limit: no slowdown, you just can't pick up more once you reach the limit. Takes effect the next time you load a save.\n" +
-            "负重接近上限时的效果。「Default」：游戏原样，负重达到上限的 80% 起减速。「Custom」：自己设定从哪里开始减速以及减速多少。「Hard limit」：不减速，只是达到上限后无法再拾取。下次读取存档时生效。",
-            new AcceptableValueList<string>(Core.Overweight.Choices)));
+            "负重接近上限时的效果。「默认」(Default)：游戏原样，负重达到上限的 80% 起减速。「自定义」(Custom)：自己设定从哪里开始减速以及减速多少。「硬上限」(Hard limit)：不减速，只是达到上限后无法再拾取。下次读取存档时生效。",
+            new AcceptableValueList<string>(Core.Overweight.Choices), ChoiceZh + Core.Overweight.DefaultName + "=默认", ChoiceZh + Core.Overweight.CustomName + "=自定义", ChoiceZh + Core.Overweight.HardLimitName + "=硬上限"));
 
         public static ConfigEntry<int> SlowFrom(ConfigFile config) => config.Bind(Weight, "SlowFrom", 80, new ConfigDescription(
             $"With Overweight set to Custom: the slowdown starts at this percent of your weight limit. 100 means only at the limit. From {Core.Overweight.MinSlowFrom} to {Core.Overweight.MaxSlowFrom}.\n" +
-            $"当「Overweight」为「Custom」时：负重达到上限的这个百分比时开始减速。100 表示到达上限才减速。范围 {Core.Overweight.MinSlowFrom} 到 {Core.Overweight.MaxSlowFrom}。",
+            $"当「Overweight」为「自定义」时：负重达到上限的这个百分比时开始减速。100 表示到达上限才减速。范围 {Core.Overweight.MinSlowFrom} 到 {Core.Overweight.MaxSlowFrom}。",
             new AcceptableValueRange<int>(Core.Overweight.MinSlowFrom, Core.Overweight.MaxSlowFrom), ShowWhenCustom, Advanced));
 
         public static ConfigEntry<int> SlowBy(ConfigFile config) => config.Bind(Weight, "SlowBy", 40, new ConfigDescription(
             $"With Overweight set to Custom: how much slower you move once the slowdown starts, in percent. 0 means no slowdown. From {Core.Overweight.MinSlowBy} to {Core.Overweight.MaxSlowBy}.\n" +
-            $"当「Overweight」为「Custom」时：开始减速后移动速度降低的百分比。0 表示不减速。范围 {Core.Overweight.MinSlowBy} 到 {Core.Overweight.MaxSlowBy}。",
+            $"当「Overweight」为「自定义」时：开始减速后移动速度降低的百分比。0 表示不减速。范围 {Core.Overweight.MinSlowBy} 到 {Core.Overweight.MaxSlowBy}。",
             new AcceptableValueRange<int>(Core.Overweight.MinSlowBy, Core.Overweight.MaxSlowBy), ShowWhenCustom, Advanced));
 
         public static ConfigEntry<bool> UninstallPrep(ConfigFile config) => config.Bind(Uninstall, "UninstallPrep", false,

@@ -51,10 +51,6 @@ internal sealed class Tabs
                     return ok;
                 });
                 break;
-            case PageCommand.SetItemWeight set:
-                _settings.ItemWeightEntry.Value = ItemWeight.Clamp(set.Value);
-                _log($"Items tab set ItemWeight to {_settings.ItemWeightEntry.Value}");
-                break;
             case PageCommand.Unknown unknown:
                 _log("page: " + unknown.Text);
                 break;

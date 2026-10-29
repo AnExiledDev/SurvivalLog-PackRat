@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 
 namespace PackRat.Core;
 
@@ -13,7 +12,6 @@ public abstract record PageCommand
 
     private const string SaveGridsVerb = "grids|save|";
     private const string SaveItemsVerb = "items|save|";
-    private const string ItemWeightVerb = "setting|ItemWeight|";
 
     private PageCommand()
     {
@@ -34,9 +32,6 @@ public abstract record PageCommand
     /// <summary>The Items tab saved: <paramref name="Json"/> is the whole new file.</summary>
     public sealed record SaveItems(string Json) : PageCommand;
 
-    /// <summary>The Items tab changed the ItemWeight setting.</summary>
-    public sealed record SetItemWeight(double Value) : PageCommand;
-
     public sealed record Unknown(string Text) : PageCommand;
 
     public static bool IsOurs(string? message) => message is not null && message.StartsWith(Prefix, StringComparison.Ordinal);
@@ -50,13 +45,6 @@ public abstract record PageCommand
 
         if (verb.StartsWith(SaveGridsVerb, StringComparison.Ordinal)) return new SaveGrids(verb.Substring(SaveGridsVerb.Length));
         if (verb.StartsWith(SaveItemsVerb, StringComparison.Ordinal)) return new SaveItems(verb.Substring(SaveItemsVerb.Length));
-
-        if (verb.StartsWith(ItemWeightVerb, StringComparison.Ordinal))
-        {
-            return double.TryParse(verb.Substring(ItemWeightVerb.Length), NumberStyles.Float, CultureInfo.InvariantCulture, out var value) && double.IsFinite(value)
-                ? new SetItemWeight(value)
-                : new Unknown(message);
-        }
 
         return verb switch
         {

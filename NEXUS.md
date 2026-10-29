@@ -23,7 +23,6 @@ Pack Rat writes nothing into your save and does not edit game files. Before you 
 [*]Changes take effect the next time you load a save.[/*]
 [*]Very large carry weights are capped so the game's numbers stay valid. At 1000x the hiking pack, warehouse bag, shopping cart and car stop at about 833x, 801x, 556x and 208x.[/*]
 [*]The shopping bags in the living room hold only so much. When they are full, the rest goes on the floor.[/*]
-[*]The category names on the Items tab are Pack Rat's own, since the game has no names for them.[/*]
 [/list]
 
 [center][img]https://sldb.core-directive.com/img/mods-banner.jpg[/img]
@@ -81,7 +80,6 @@ Pack Rat 不会往存档里写入任何内容，也不会修改游戏文件。�
 [*]改动会在下次读取存档时生效。[/*]
 [*]负重倍数过大时会被限制，以保证游戏数值有效。设为 1000 倍时，野外登山包、仓管背包、购物车和轿车分别约为 833、801、556 和 208 倍。[/*]
 [*]客厅的购物袋容量有限，装满后其余物品会放到地上。[/*]
-[*]「物品」页面的类别名称是 Pack Rat 自己起的，因为游戏里没有这些名称。[/*]
 [/list]
 
 [url=https://www.nexusmods.com/survivallog/mods/73]获取 Mod Manager[/url]，在游戏里设置所有模组。[url=https://sldb.core-directive.com/zh/]打开 Survival Log 维基[/url]，物品、配方、地图一查就有。

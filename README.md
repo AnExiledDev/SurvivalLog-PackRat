@@ -21,8 +21,6 @@ Pack Rat writes nothing into your save and does not edit game files. The new siz
 - **Changes apply at the next save load.** Bags already loaded keep their size and limit until you load a save.
 - **Very large carry weights are capped.** At 1000x the hiking pack, warehouse bag, shopping cart and car stop at about 833x, 801x, 556x and 208x so the game's numbers stay valid.
 - **The shopping bags in the living room hold only so much.** When they are full, the rest goes on the floor.
-- **The Items tab category names are Pack Rat's own**, since the game has no names for them.
-- **The Mods screen may show the old `ItemWeight`** after you change `Item weight` on the Items tab, until you reopen Mod Manager. The saved value is the new one.
 
 ## Requirements
 

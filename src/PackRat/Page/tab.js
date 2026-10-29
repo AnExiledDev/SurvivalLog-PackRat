@@ -7,6 +7,7 @@
   if (window.__slpackrat) return;
 
   const PREFIX = 'slmod|packrat|';
+  const MM_PREFIX = 'slmod|modmanager|';
   const GUID = 'com.dev.survivallog.packrat';
   const STYLE_ID = 'slpackrat-css';
   const SAVE_MS = 500;
@@ -14,15 +15,6 @@
   const RESET_MS = 3000;
   const SHOWN_STEP = 120;
   const FILES = { grids: 'PackRat.Inventories.json', items: 'PackRat.Items.json' };
-
-  // The game gives its item categories numbers only; these names are ours.
-  const CATEGORIES = {
-    1: ['Food', '食物'], 2: ['Medicine', '药品'], 3: ['Books', '书籍'], 4: ['Game consoles', '游戏机'], 5: ['Recreation', '娱乐用品'],
-    6: ['Tools', '工具'], 8: ['Supply packs', '物资包'], 9: ['Materials', '材料'], 10: ['Seeds', '种子'], 11: ['Fertilizer', '肥料'],
-    12: ['Traps', '陷阱'], 13: ['Fuel and alcohol', '燃料与酒精'], 14: ['Furniture packages', '家具包裹'], 15: ['Flowers', '花卉'],
-    16: ['Throwables and bait', '投掷物与诱饵'], 17: ['Robot modules', '机器人模块'], 18: ['Notes and clues', '笔记与线索'],
-    19: ['Crafts and ornaments', '手工与摆件'], 20: ['Records', '唱片'], 21: ['Renovation', '装修'], 22: ['Keys and quest items', '钥匙与任务物品'],
-  };
 
   const SIZE_CHOICES = [[1, 1], [1, 2], [2, 1], [2, 2], [2, 3], [3, 2], [3, 3], [4, 3]];
   const GROUPS = { bag: ['Bags', '背包'], vehicle: ['Vehicles', '载具'], storage: ['Storage', '储物家具'] };
@@ -65,6 +57,7 @@
   let ENTRIES = [];
   let ITEMS = [];
   let SUBS = {};
+  let CATS = {};
   const bagById = new Map();
   const itemById = new Map();
 
@@ -112,6 +105,7 @@
     bagById.clear();
     itemById.clear();
     SUBS = isObj(D.subs) ? D.subs : {};
+    CATS = isObj(D.cats) ? D.cats : {};
 
     const byName = new Map();
     ENTRIES = [];
@@ -397,7 +391,12 @@
 
     if (kind === 'grids') send('grids|save|' + JSON.stringify(gridsToFile()));
     else if (kind === 'items') send('items|save|' + JSON.stringify(st.items));
-    else if (kind === 'iw') send('setting|ItemWeight|' + st.itemWeight);
+    else if (kind === 'iw') sendModManager('set', [GUID, 'Weight', 'ItemWeight', String(Number(st.itemWeight.toFixed(2)))]);
+  }
+
+  // ItemWeight is an ordinary setting, so the Mod Manager writes it: then its own Mods screen shows the new value too.
+  function sendModManager(verb, parts) {
+    try { window.vuplex.postMessage(MM_PREFIX + [verb].concat(parts.map(encodeURIComponent)).join('|')); } catch (e) { /* not in the game */ }
   }
 
   function flushAll() {
@@ -603,7 +602,7 @@
     const levels = e.rows.length > 1 ? '<div class="pr-levels">' + e.rows.map((x, i) => { const xg = gridOf(x.id); return '<span data-level="' + i + '"' + (i === ui.level ? ' class="on"' : '') + '>' + T('Level ', '等级 ') + (i + 1) + ' <i>' + xg.w + 'x' + xg.h + '</i></span>'; }).join('') + '</div>' : '';
     const ownGroup = st.grids[r.grp] !== 1;
     const from = own.w || own.h ? T('Custom', '自定义') : scale !== 1 ? T((ownGroup ? GROUPS[r.grp][0] : 'All') + ' multiplier (' + scale.toFixed(2) + 'x)', (ownGroup ? GROUPS[r.grp][1] : '全部') + '倍率（' + scale.toFixed(2) + 'x）') : T('Default', '默认');
-    const accept = r.accept ? (CATEGORIES[r.accept] || ['Category ' + r.accept, '类别 ' + r.accept]) : null;
+    const accept = r.accept ? catNames(r.accept) : null;
 
     return '<div class="pr-ed-h">' + img(e.icon) + '<div><div class="pr-ed-t">' + esc(nameOf(e.name)) + '</div><div class="pr-ed-s">' + (pieces ? T('Used by ', '用于：') + esc(pieces) : T(GROUPS[r.grp][0], GROUPS[r.grp][1]))
       + (accept ? ' &middot; ' + T(accept[0] + ' only', '仅限' + accept[1]) : '') + '</div></div>' + levels + '</div>'
@@ -702,7 +701,9 @@
   }
 
   function catNames(cat) {
-    return CATEGORIES[cat] || ['Category ' + cat, '类别 ' + cat];
+    const n = CATS[cat];
+
+    return n ? [n.en, n.zh] : ['Category ' + cat, '类别 ' + cat];
   }
 
   function catList() {
@@ -919,7 +920,7 @@
     return false;
   }
 
-  window.__slpackrat = { data, saved };
+  window.__slpackrat = { data, saved, setItemWeight };
 
   if (!Array.isArray(window.__modmanagerTabs)) window.__modmanagerTabs = [];
 

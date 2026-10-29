@@ -23,18 +23,27 @@
     <Reference Include="$(BepInExCore)\Il2CppInterop.Common.dll" Private="false" />
     <Reference Include="$(Interop)\HotUpdate.dll" Private="false" />
     <Reference Include="$(Interop)\Il2Cppmscorlib.dll" Private="false" />
+    <Reference Include="$(Interop)\Il2CppSystem.Core.dll" Private="false" />
     <Reference Include="$(Interop)\UnityEngine.CoreModule.dll" Private="false" />
+    <Reference Include="$(Interop)\Vuplex.WebView.dll" Private="false" />
     <Reference Include="$(ToolkitDll)" Private="false" />
+  </ItemGroup>
+
+  <!-- The Inventories and Items tabs, sent into the game's web UI. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Page\tab.js" LogicalName="PackRat.tab.js" />
+    <EmbeddedResource Include="Page\tab.css" LogicalName="PackRat.tab.css" />
+    <EmbeddedResource Include="Page\data.js" LogicalName="PackRat.data.js" />
   </ItemGroup>
 
   <!-- What the Mod Manager's Mods screen shows about this mod. -->
   <ItemGroup>
     <AssemblyMetadata Include="ModManager.Name" Value="Pack Rat&#10;背包达人" />
-    <AssemblyMetadata Include="ModManager.Description" Value="Lets every bag, storage piece and vehicle carry more weight, twice as much by default.&#10;提高所有背包、储物家具和载具的负重上限，默认为两倍。" />
+    <AssemblyMetadata Include="ModManager.Description" Value="Carry more: bigger bags, storage and vehicles, smaller or lighter items, a higher weight limit and a choice of overweight slowdown, all set from two tabs in the Mod Manager.&#10;多装一点：更大的背包、储物家具和载具，更小或更轻的物品，更高的负重上限，以及可调的超重减速，都可以在模组管理器的两个页面里设置。" />
     <AssemblyMetadata Include="ModManager.Author" Value="AnExiledDev" />
     <AssemblyMetadata Include="ModManager.Category" Value="Balance" />
     <AssemblyMetadata Include="ModManager.GameVersion" Value="1.1.19611" />
-    <AssemblyMetadata Include="ModManager.Settings" Value="Restart" />
+    <AssemblyMetadata Include="ModManager.Settings" Value="Live" />
     <AssemblyMetadata Include="ModManager.GitHub" Value="AnExiledDev/SurvivalLog-PackRat" />
     <AssemblyMetadata Include="ModManager.Changelog" Value="https://github.com/AnExiledDev/SurvivalLog-PackRat/blob/main/CHANGELOG.md" />
   </ItemGroup>

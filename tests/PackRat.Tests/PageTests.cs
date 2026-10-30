@@ -60,6 +60,30 @@ public class TabsPageTests
         Assert.Equal("PackRat.Items.json is not valid JSON", (string)data["problems"]![0]!);
     }
 
+    /// <summary>The tab groups inventories the way the plugin sizes them, so both must agree on every row's category.</summary>
+    [Fact]
+    public void The_data_call_names_each_inventory_s_category_from_its_game_size()
+    {
+        var bags = new Dictionary<int, int[]>
+        {
+            [1] = new[] { 8, 7, 9600 },
+            [4] = new[] { 14, 10, 48000 },
+            [2003] = new[] { 5, 3, 0 },
+            [1004] = new[] { 8, 7, 0 },
+            [1003] = new[] { 8, 10, 24000 },
+            [110009] = new[] { 20, 12, 0 },
+        };
+
+        var cats = Payload(TabsPage.DataCall(bags, new Dictionary<int, int[]>(), 1, 1, null, null, new string[0]))["cats"]!;
+
+        Assert.Equal("bags", (string)cats["1"]!);
+        Assert.Equal("vehicles", (string)cats["4"]!);
+        Assert.Equal("small", (string)cats["2003"]!);
+        Assert.Equal("medium", (string)cats["1004"]!);
+        Assert.Equal("large", (string)cats["1003"]!);
+        Assert.Equal("xlarge", (string)cats["110009"]!);
+    }
+
     [Fact]
     public void Text_in_the_data_call_cannot_end_the_script()
     {

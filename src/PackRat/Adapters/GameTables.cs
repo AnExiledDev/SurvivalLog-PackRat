@@ -8,7 +8,8 @@ namespace PackRat.Adapters;
 /// <summary>
 /// Writes Pack Rat's sizes and weights into the game's tables in memory. Bags read their grid size and weight limit
 /// from the bag table whenever they are used, and an item takes its size from the item table when it is added, so a
-/// write before the save's items load reaches everything. Each table value's own game number is kept, so a setting
+/// write before the save's items load reaches everything. A write in the middle of a game also needs the items and
+/// bags that already exist brought up to date (see <see cref="LiveApply"/>). Each table value's own game number is kept, so a setting
 /// is always worked out from the game's, and Uninstall prep can put every one back.
 /// </summary>
 internal static class GameTables
@@ -21,6 +22,13 @@ internal static class GameTables
     private static readonly GameValues<int, Size> ItemSizes = new();
     private static readonly GameValues<int, int> ItemGrams = new();
     private static readonly GameValues<string, float> Overweight = new();
+    private static readonly Dictionary<int, (Size Was, Size Now)> Resized = new();
+
+    /// <summary>The item sizes the last write changed, by item id: what the table had before and what it has now.</summary>
+    public static IReadOnlyDictionary<int, (Size Was, Size Now)> ResizedItems => Resized;
+
+    /// <summary>How many grid sizes the last write changed.</summary>
+    public static int ChangedGrids { get; private set; }
 
     /// <summary>Writes every table and returns a line for the log, or null when the tables are not loaded yet.</summary>
     public static string? Write(TableSettings settings)
@@ -32,6 +40,9 @@ internal static class GameTables
         if (config == null || bags == null || items == null || bags.Count == 0 || items.Count == 0) return null;
 
         int limits = 0, grids = 0, sizes = 0, weights = 0;
+
+        Resized.Clear();
+        ChangedGrids = 0;
 
         foreach (var row in bags.Values)
         {
@@ -64,6 +75,8 @@ internal static class GameTables
         // again from the new sizes.
         if (grids > 0) config._bagSizeSet = null;
 
+        ChangedGrids = grids;
+
         foreach (var row in items.Values)
         {
             if (row == null) continue;
@@ -90,6 +103,7 @@ internal static class GameTables
             if (size == current) continue;
 
             Put(row._Size_k__BackingField, size);
+            Resized[id] = (current, size);
             sizes++;
         }
 

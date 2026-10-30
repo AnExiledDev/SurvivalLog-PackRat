@@ -48,6 +48,54 @@ public class TabScriptTests
         Assert.Equal("药物", page.Text("window.__slpackratData.cats[2].zh"));
     }
 
+    /// <summary>The page shows each inventory under the category the plugin named, and works out its grid the plugin's way.</summary>
+    [Fact]
+    public void The_page_uses_the_plugin_s_categories_and_its_order_of_sizes()
+    {
+        var page = new Page();
+
+        page.Run("""
+            window.__slpackrat.data({
+              bags: { 1001: [8, 6, 14400], 1004: [8, 7, 0], 1: [8, 7, 9600] },
+              cats: { 1001: 'medium', 1004: 'medium', 1: 'bags' },
+              grids: { scale: { all: 2 }, cats: { medium: { w: 10, h: 9 } }, rows: { 1004: { h: 12 } } }
+            })
+            """);
+
+        Assert.Equal("medium", page.Text("window.__slpackrat.categoryOf(1001)"));
+        Assert.Equal("10x9", page.Text("(function (g) { return g.w + 'x' + g.h; })(window.__slpackrat.gridOf(1001))"));
+        Assert.Equal("10x12", page.Text("(function (g) { return g.w + 'x' + g.h; })(window.__slpackrat.gridOf(1004))"));
+        Assert.Equal("16x14", page.Text("(function (g) { return g.w + 'x' + g.h; })(window.__slpackrat.gridOf(1))"));
+    }
+
+    /// <summary>The plugin reads the file the page saves; a category the page shows must reach it under the same key.</summary>
+    [Fact]
+    public void The_page_saves_categories_in_the_plugin_s_file_shape()
+    {
+        var page = new Page();
+
+        page.Run("""
+            window.__slpackrat.data({
+              bags: { 3: [12, 8, 18000] },
+              cats: { 3: 'vehicles' },
+              grids: { scale: { all: 1 }, cats: { vehicles: { x: 1.5 }, huge: { w: 4 } }, rows: { 3: { kg: 40 } } }
+            })
+            """);
+
+        Assert.Equal("""{"scale":{},"cats":{"vehicles":{"x":1.5}},"rows":{"3":{"kg":40}}}""", page.Text("window.__slpackrat.gridsFile()"));
+    }
+
+    [Fact]
+    public void An_inventory_the_plugin_did_not_name_falls_into_a_category_by_its_size()
+    {
+        var page = new Page();
+
+        page.Run("window.__slpackrat.data({ bags: { 1001: [8, 6, 14400], 1003: [8, 10, 24000] } })");
+
+        Assert.Equal("medium", page.Text("window.__slpackrat.categoryOf(1001)"));
+        Assert.Equal("large", page.Text("window.__slpackrat.categoryOf(1003)"));
+    }
+
     private sealed class Page
     {
         // Timers wait until the test runs them; a cleared one is dropped, as in a browser.

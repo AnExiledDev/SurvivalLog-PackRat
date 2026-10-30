@@ -7,29 +7,97 @@ using System.Text.Json.Nodes;
 
 namespace PackRat.Core;
 
-public enum BagGroup
-{
-    Bag,
-    Vehicle,
-    Storage,
-}
-
 /// <summary>Columns and rows of one grid, or the size of one item, in cells.</summary>
 public readonly record struct Size(int W, int H)
 {
     public override string ToString() => W + "x" + H;
 }
 
-public static class BagGroups
+/// <summary>
+/// The groups the Inventories tab sets together. Each holds inventories of about the same size, so one size or one
+/// multiplier fits the whole group.
+/// </summary>
+public enum Category
 {
-    /// <summary>
-    /// The game's bag table numbers player bags below 1000 and storage furniture from 1000 up. Rows 3 and 4 are the
-    /// car's trunk and the cart, so they count as vehicles.
-    /// </summary>
-    public static BagGroup Of(int id) => id is 3 or 4 ? BagGroup.Vehicle : id < 1000 ? BagGroup.Bag : BagGroup.Storage;
+    Bags,
+    Vehicles,
+    SmallStorage,
+    MediumStorage,
+    LargeStorage,
+    ExtraLargeStorage,
 }
 
-/// <summary>One bag table row's own columns, rows and weight limit. Null means the row follows the multipliers.</summary>
+public static class Categories
+{
+    public const int SmallMaxCells = 24;
+    public const int MediumMaxCells = 60;
+    public const int LargeMaxCells = 140;
+
+    public static readonly Category[] All =
+    {
+        Category.Bags, Category.Vehicles, Category.SmallStorage, Category.MediumStorage, Category.LargeStorage, Category.ExtraLargeStorage,
+    };
+
+    public static readonly Category[] Storage = { Category.SmallStorage, Category.MediumStorage, Category.LargeStorage, Category.ExtraLargeStorage };
+
+    /// <summary>
+    /// The game's bag table numbers player bags below 1000 and storage furniture from 1000 up. Rows 3 and 4 (the cart
+    /// and the car) and the car trunk, SUV trunk and truck trailer rows are vehicles. Storage is sorted by the game's
+    /// own cell count, so a row a game update adds finds its group by itself.
+    /// </summary>
+    public static Category Of(int id, Size game)
+    {
+        if (id is 3 or 4 or 1022 or 1023 or 115003) return Category.Vehicles;
+        if (id < 1000) return Category.Bags;
+
+        var cells = game.W * game.H;
+
+        return cells <= SmallMaxCells ? Category.SmallStorage
+            : cells <= MediumMaxCells ? Category.MediumStorage
+            : cells <= LargeMaxCells ? Category.LargeStorage
+            : Category.ExtraLargeStorage;
+    }
+
+    /// <summary>The name a category has in the file and on the page.</summary>
+    public static string Key(Category category) => category switch
+    {
+        Category.Bags => "bags",
+        Category.Vehicles => "vehicles",
+        Category.SmallStorage => "small",
+        Category.MediumStorage => "medium",
+        Category.LargeStorage => "large",
+        _ => "xlarge",
+    };
+
+    public static bool TryParse(string key, out Category category)
+    {
+        foreach (var each in All)
+        {
+            if (Key(each) != key) continue;
+
+            category = each;
+
+            return true;
+        }
+
+        category = default;
+
+        return false;
+    }
+}
+
+/// <summary>
+/// A category's own multiplier and its own columns and rows. A multiplier of 1 means the All multiplier applies; a
+/// null side follows the multiplier.
+/// </summary>
+public sealed record CategoryRule(double Scale, int? W, int? H)
+{
+    public static readonly CategoryRule None = new(1, null, null);
+
+    public bool IsEmpty => Scale == 1 && W is null && H is null;
+}
+
+/// <summary>One bag table row's own columns, rows and weight limit. Null means the row follows its category.</summary>
 public sealed record GridRow(int? W, int? H, double? Kg)
 {
     public bool IsEmpty => W is null && H is null && Kg is null;
@@ -45,45 +113,43 @@ public sealed class Inventories
     public const double MinKg = 0.5;
     public const double MaxKg = 9999;
 
-    public static readonly Inventories Default = new(1, 1, 1, 1, new Dictionary<int, GridRow>());
+    public static readonly Inventories Default = new(1, new Dictionary<Category, CategoryRule>(), new Dictionary<int, GridRow>());
 
-    public Inventories(double all, double bag, double vehicle, double storage, IReadOnlyDictionary<int, GridRow> rows)
+    public Inventories(double all, IReadOnlyDictionary<Category, CategoryRule> cats, IReadOnlyDictionary<int, GridRow> rows)
     {
         All = ClampScale(all);
-        Bag = ClampScale(bag);
-        Vehicle = ClampScale(vehicle);
-        Storage = ClampScale(storage);
+        Cats = cats;
         Rows = rows;
     }
 
     public double All { get; }
-    public double Bag { get; }
-    public double Vehicle { get; }
-    public double Storage { get; }
+    public IReadOnlyDictionary<Category, CategoryRule> Cats { get; }
     public IReadOnlyDictionary<int, GridRow> Rows { get; }
 
-    /// <summary>A group's own multiplier wins when it is not 1, otherwise All applies.</summary>
-    public double ScaleOf(BagGroup group)
+    public CategoryRule RuleOf(Category category) => Cats.TryGetValue(category, out var rule) ? rule : CategoryRule.None;
+
+    /// <summary>A category's own multiplier wins when it is not 1, otherwise All applies.</summary>
+    public double ScaleOf(Category category)
     {
-        var own = group switch
-        {
-            BagGroup.Vehicle => Vehicle,
-            BagGroup.Storage => Storage,
-            _ => Bag,
-        };
+        var own = RuleOf(category).Scale;
 
         return own != 1 ? own : All;
     }
 
-    /// <summary>The grid row <paramref name="id"/> gets: its own columns and rows, then the multiplier, then the game's.</summary>
+    /// <summary>
+    /// The grid row <paramref name="id"/> gets, each side on its own: the row's own columns or rows, then its
+    /// category's, then the game's times the multiplier.
+    /// </summary>
     public Size GridOf(int id, Size game)
     {
         if (game.W <= 0 || game.H <= 0) return game;
 
         Rows.TryGetValue(id, out var own);
-        var scale = ScaleOf(BagGroups.Of(id));
+        var category = Categories.Of(id, game);
+        var rule = RuleOf(category);
+        var scale = ScaleOf(category);
 
-        return new Size(own?.W ?? Scaled(game.W, scale), own?.H ?? Scaled(game.H, scale));
+        return new Size(own?.W ?? rule.W ?? Scaled(game.W, scale), own?.H ?? rule.H ?? Scaled(game.H, scale));
     }
 
     /// <summary>
@@ -104,9 +170,12 @@ public sealed class Inventories
 
     private static double ClampScale(double scale) => double.IsFinite(scale) ? Math.Clamp(scale, MinScale, MaxScale) : 1;
 
+    private static int? Cells(JsonNode? node) => Json.Int(node) is int cells ? Math.Clamp(cells, MinCells, MaxCells) : null;
+
     /// <summary>
     /// Reads the file's text. Values out of range are pulled into range and entries that are not numbers are left out;
-    /// only text that is not a JSON object fails, with the reason in <paramref name="error"/>.
+    /// only text that is not a JSON object fails, with the reason in <paramref name="error"/>. Files from before the
+    /// categories had a bag, vehicle and storage multiplier; those become the multipliers of the matching categories.
     /// </summary>
     public static bool TryParse(string? json, out Inventories settings, out string error)
     {
@@ -136,7 +205,31 @@ public sealed class Inventories
         }
 
         var scale = root["scale"] as JsonObject;
+        var cats = new Dictionary<Category, CategoryRule>();
         var rows = new Dictionary<int, GridRow>();
+
+        if (Json.Number(scale?["bag"]) is double bag) cats[Category.Bags] = new CategoryRule(ClampScale(bag), null, null);
+        if (Json.Number(scale?["vehicle"]) is double vehicle) cats[Category.Vehicles] = new CategoryRule(ClampScale(vehicle), null, null);
+
+        if (Json.Number(scale?["storage"]) is double storage)
+        {
+            foreach (var category in Categories.Storage) cats[category] = new CategoryRule(ClampScale(storage), null, null);
+        }
+
+        if (root["cats"] is JsonObject catNodes)
+        {
+            foreach (var (key, node) in catNodes)
+            {
+                if (!Categories.TryParse(key, out var category) || node is not JsonObject cat) continue;
+
+                cats[category] = new CategoryRule(Json.Number(cat["x"]) is double x ? ClampScale(x) : 1, Cells(cat["w"]), Cells(cat["h"]));
+            }
+        }
+
+        foreach (var category in Categories.All)
+        {
+            if (cats.TryGetValue(category, out var rule) && rule.IsEmpty) cats.Remove(category);
+        }
 
         if (root["rows"] is JsonObject rowNodes)
         {
@@ -144,21 +237,13 @@ public sealed class Inventories
             {
                 if (!Json.TryId(key, out var id) || node is not JsonObject row) continue;
 
-                var parsed = new GridRow(
-                    Json.Int(row["w"]) is int w ? Math.Clamp(w, MinCells, MaxCells) : null,
-                    Json.Int(row["h"]) is int h ? Math.Clamp(h, MinCells, MaxCells) : null,
-                    Json.Number(row["kg"]) is double kg ? Math.Clamp(kg, MinKg, MaxKg) : null);
+                var parsed = new GridRow(Cells(row["w"]), Cells(row["h"]), Json.Number(row["kg"]) is double kg ? Math.Clamp(kg, MinKg, MaxKg) : null);
 
                 if (!parsed.IsEmpty) rows[id] = parsed;
             }
         }
 
-        settings = new Inventories(
-            Json.Number(scale?["all"]) ?? 1,
-            Json.Number(scale?["bag"]) ?? 1,
-            Json.Number(scale?["vehicle"]) ?? 1,
-            Json.Number(scale?["storage"]) ?? 1,
-            rows);
+        settings = new Inventories(Json.Number(scale?["all"]) ?? 1, cats, rows);
 
         return true;
     }
@@ -168,9 +253,21 @@ public sealed class Inventories
     {
         var scale = new JsonObject();
 
-        foreach (var (key, value) in new[] { ("all", All), ("bag", Bag), ("vehicle", Vehicle), ("storage", Storage) })
+        if (All != 1) scale["all"] = All;
+
+        var cats = new JsonObject();
+
+        foreach (var category in Categories.All)
         {
-            if (value != 1) scale[key] = value;
+            var rule = RuleOf(category);
+
+            if (rule.IsEmpty) continue;
+
+            var node = new JsonObject();
+            if (rule.Scale != 1) node["x"] = rule.Scale;
+            if (rule.W is int w) node["w"] = w;
+            if (rule.H is int h) node["h"] = h;
+            cats[Categories.Key(category)] = node;
         }
 
         var rows = new JsonObject();
@@ -184,7 +281,7 @@ public sealed class Inventories
             rows[id.ToString(CultureInfo.InvariantCulture)] = node;
         }
 
-        return new JsonObject { ["scale"] = scale, ["rows"] = rows }.ToJsonString();
+        return new JsonObject { ["scale"] = scale, ["cats"] = cats, ["rows"] = rows }.ToJsonString();
     }
 }
 

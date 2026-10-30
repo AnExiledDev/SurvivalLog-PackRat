@@ -28,6 +28,9 @@ internal static class Overflow
     /// <summary>A save finished loading; tells the caller how the held items were placed.</summary>
     public static event Action<Placed>? Done;
 
+    /// <summary>False while a save loads and until the items it held back are placed.</summary>
+    public static bool IsIdle => !_isLoading && !_hasLoaded;
+
     public static void StartLoad()
     {
         Held.Clear();
@@ -75,21 +78,25 @@ internal static class Overflow
 
         _hasLoaded = false;
 
-        var placed = Place(world, player);
+        var placed = Place(world, player, Held);
 
         Held.Clear();
         Done?.Invoke(placed);
     }
 
-    private static Placed Place(BattleLogicWorld world, LeadingRole player)
+    /// <summary>
+    /// Puts items that no longer fit their bag into the shopping bags, or on the floor when both are full. Used after
+    /// a load and when a change in the middle of a game leaves items with no room.
+    /// </summary>
+    public static Placed Place(BattleLogicWorld world, LeadingRole player, List<ItemData> overflow)
     {
         var items = world._ItemManager;
         var agents = world._AgentManager;
         int toBags = 0, toFloor = 0, stuck = 0;
 
-        if (items == null || agents == null) return new Placed(0, 0, Held.Count);
+        if (items == null || agents == null) return new Placed(0, 0, overflow.Count);
 
-        foreach (var item in Held)
+        foreach (var item in overflow)
         {
             var id = item.InstanceId;
 

@@ -6,7 +6,7 @@ namespace PackRat.Adapters;
 
 /// <summary>
 /// The Unity object that gives Pack Rat its frames: it keeps the tab script in the web UI, handles the tabs' messages
-/// on the game's thread, and places the items a load held back. Each distinct failure is logged once and never
+/// on the game's thread, places the items a load held back, and applies a change made in the middle of a game. Each distinct failure is logged once and never
 /// rethrown into the game.
 /// </summary>
 public sealed class Ticker : MonoBehaviour
@@ -33,6 +33,7 @@ public sealed class Ticker : MonoBehaviour
             while (PageMessages.TryTake(out var command)) Tabs?.Handle(command);
 
             Overflow.Tick(now);
+            LiveApply.Tick(now);
         }
         catch (Exception ex)
         {

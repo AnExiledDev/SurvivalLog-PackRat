@@ -1,8 +1,9 @@
 // Pack Rat's Inventories and Items tabs in the Mod Manager. Inventories saves to PackRat.Inventories.json, Items to
-// PackRat.Items.json; both apply the next time a save loads. Runs in Root.html and only once: the plugin sends it
+// PackRat.Items.json; both apply right away in a game, or when a save loads. Runs in Root.html and only once: the plugin sends it
 // again whenever the web view lost it. Talks to the plugin through vuplex.postMessage("slmod|packrat|...") and is
 // answered through window.__slpackrat. The names and icons of the game's inventories and items come once per page
-// as window.__slpackratData; the game's live sizes and weights come with every load.
+// as window.__slpackratData; the game's live sizes and weights come with every load. It also gives the game's own bag
+// screen a scrollbar for grids too big for the window (see bagScroll).
 (function () {
   if (window.__slpackrat) return;
 
@@ -17,7 +18,32 @@
   const FILES = { grids: 'PackRat.Inventories.json', items: 'PackRat.Items.json' };
 
   const SIZE_CHOICES = [[1, 1], [1, 2], [2, 1], [2, 2], [2, 3], [3, 2], [3, 3], [4, 3]];
-  const GROUPS = { bag: ['Bags', '背包'], vehicle: ['Vehicles', '载具'], storage: ['Storage', '储物家具'] };
+
+  // The same categories as the plugin's (Core/Inventories.cs): inventories of about the same size, so one size suits
+  // the whole category. The plugin names each inventory's category with every load; categoryOf is only a fallback.
+  const CATEGORIES = [
+    { key: 'bags', grp: 'bag', en: 'Bags', zh: '背包' },
+    { key: 'vehicles', grp: 'vehicle', en: 'Vehicles', zh: '载具' },
+    { key: 'small', grp: 'storage', en: 'Small storage', zh: '小型储物', cells: 24 },
+    { key: 'medium', grp: 'storage', en: 'Medium storage', zh: '中型储物', cells: 60 },
+    { key: 'large', grp: 'storage', en: 'Large storage', zh: '大型储物', cells: 140 },
+    { key: 'xlarge', grp: 'storage', en: 'Extra large storage', zh: '超大型储物', cells: Infinity },
+  ];
+  const CATEGORY = {};
+  CATEGORIES.forEach((c, i) => { c.order = i; CATEGORY[c.key] = c; });
+  const VEHICLE_IDS = [3, 4, 1022, 1023, 115003];
+
+  // The game's bag screen: a style that puts a scrollbar on a grid too big for the window, instead of the game
+  // shrinking the whole screen to fit it.
+  const BAG_PAGE = /BackpackUI\.html/;
+  const BAG_STYLE_ID = 'slpackrat-bag-scroll';
+  const BAG_POLL_MS = 1000;
+  const BAG_CSS = '.grid-wrapper{max-height:calc(100vh - 300px);max-width:46vw;overflow:auto;justify-content:flex-start;scrollbar-width:thin}'
+    + '.grid-wrapper>.grid-container{flex:none;margin:0 auto}'
+    + '.grid-wrapper::-webkit-scrollbar{width:8px;height:8px}'
+    + '.grid-wrapper::-webkit-scrollbar-track{background:rgba(0,0,0,0.35)}'
+    + '.grid-wrapper::-webkit-scrollbar-thumb{background:rgba(255,200,58,0.45);border-radius:4px}'
+    + '.grid-wrapper::-webkit-scrollbar-corner{background:transparent}';
 
   const LOADS = {
     haul: { en: 'Scavenging run', zh: '一次普通搜刮', picks: [[1, 10], [9, 8], [2, 3], [3, 2], [6, 2], [19, 2], [13, 1], [14, 2]] },
@@ -62,7 +88,7 @@
   const itemById = new Map();
 
   function freshGrids() {
-    return { all: 1, bag: 1, vehicle: 1, storage: 1, rows: {} };
+    return { all: 1, cats: {}, rows: {} };
   }
 
   function freshItems() {
@@ -102,6 +128,8 @@
     const bags = isObj(live.bags) ? live.bags : {};
     const items = isObj(live.items) ? live.items : {};
 
+    const cats = isObj(live.cats) ? live.cats : {};
+
     bagById.clear();
     itemById.clear();
     SUBS = isObj(D.subs) ? D.subs : {};
@@ -122,12 +150,14 @@
 
       if (!(b.w > 0 && b.h > 0)) continue;
 
+      b.cat = CATEGORY[cats[b.id]] ? cats[b.id] : categoryOf(b.id, b.w, b.h);
+      b.grp = CATEGORY[b.cat].grp;
       bagById.set(b.id, b);
 
-      const key = b.grp === 'bag' ? 'bag:' + b.name.en : 'row:' + b.id;
+      const key = b.cat === 'bags' ? 'bag:' + b.name.en : 'row:' + b.id;
 
       if (!byName.has(key)) {
-        const entry = { key, grp: b.grp, name: b.name, icon: b.icon, rows: [] };
+        const entry = { key, grp: b.grp, cat: b.cat, name: b.name, icon: b.icon, rows: [] };
         byName.set(key, entry);
         ENTRIES.push(entry);
       }
@@ -135,8 +165,8 @@
       byName.get(key).rows.push(b);
     }
 
-    const order = { bag: 0, vehicle: 1, storage: 2 };
-    ENTRIES.sort((a, b) => order[a.grp] - order[b.grp]);
+    ENTRIES.forEach((e, i) => { e.index = i; });
+    ENTRIES.sort((a, b) => CATEGORY[a.cat].order - CATEGORY[b.cat].order || a.index - b.index);
 
     ITEMS = D.items.map(a => {
       const now = items[a[0]];
@@ -156,10 +186,28 @@
 
   // ===== The rules, the same as the plugin's =====
 
-  function gridScale(grp) {
-    const g = st.grids;
+  function categoryOf(id, w, h) {
+    if (VEHICLE_IDS.indexOf(id) >= 0) return 'vehicles';
+    if (id < 1000) return 'bags';
 
-    return g[grp] !== 1 ? g[grp] : g.all;
+    return CATEGORIES.find(c => c.cells && w * h <= c.cells).key;
+  }
+
+  const catRule = cat => st.grids.cats[cat] || {};
+
+  // A category's own multiplier beats All.
+  function gridScale(cat) {
+    const x = catRule(cat).x;
+
+    return isNum(x) && x !== 1 ? x : st.grids.all;
+  }
+
+  // What a row of the category gets with no size of its own: the category's size, side by side, else the multiplier.
+  function baseOf(b) {
+    const rule = catRule(b.cat);
+    const scale = gridScale(b.cat);
+
+    return { w: rule.w || scaledCells(b.w, scale), h: rule.h || scaledCells(b.h, scale) };
   }
 
   const scaledCells = (cells, scale) => Math.max(1, Math.round(cells * scale));
@@ -171,25 +219,36 @@
   function gridOf(id) {
     const b = bagById.get(id);
     const own = st.grids.rows[id] || {};
-    const scale = gridScale(b.grp);
-    const w = own.w || scaledCells(b.w, scale);
-    const h = own.h || scaledCells(b.h, scale);
+    const base = baseOf(b);
+    const w = own.w || base.w;
+    const h = own.h || base.h;
     const limit = own.kg != null ? Math.round(own.kg * 1000) : scaledLimit(b.burden);
 
     return { w, h, limit, gameW: b.w, gameH: b.h, gameLimit: b.burden, hasOverride: !!(own.w || own.h || own.kg != null) };
   }
 
   function setRow(id, patch) {
-    const b = bagById.get(id);
-    const scale = gridScale(b.grp);
+    const base = baseOf(bagById.get(id));
     const cur = Object.assign({}, st.grids.rows[id], patch);
 
-    if (cur.w === scaledCells(b.w, scale)) delete cur.w;
-    if (cur.h === scaledCells(b.h, scale)) delete cur.h;
+    if (cur.w === base.w) delete cur.w;
+    if (cur.h === base.h) delete cur.h;
     if (cur.kg == null) delete cur.kg;
 
     if (Object.keys(cur).length) st.grids.rows[id] = cur;
     else delete st.grids.rows[id];
+
+    changed('grids');
+  }
+
+  function setCat(cat, patch) {
+    const cur = Object.assign({}, st.grids.cats[cat], patch);
+
+    for (const k of Object.keys(cur)) if (cur[k] == null) delete cur[k];
+    if (cur.x === 1) delete cur.x;
+
+    if (Object.keys(cur).length) st.grids.cats[cat] = cur;
+    else delete st.grids.cats[cat];
 
     changed('grids');
   }
@@ -310,8 +369,20 @@
     const g = freshGrids();
     if (!isObj(f)) return g;
 
-    const scale = isObj(f.scale) ? f.scale : {};
-    for (const k of ['all', 'bag', 'vehicle', 'storage']) if (isNum(scale[k])) g[k] = scale[k];
+    if (isObj(f.scale) && isNum(f.scale.all)) g.all = f.scale.all;
+
+    if (isObj(f.cats)) {
+      for (const key of Object.keys(f.cats)) {
+        const c = f.cats[key];
+        if (!CATEGORY[key] || !isObj(c)) continue;
+
+        const rule = {};
+        if (isNum(c.x) && c.x !== 1) rule.x = c.x;
+        if (isNum(c.w)) rule.w = c.w;
+        if (isNum(c.h)) rule.h = c.h;
+        if (Object.keys(rule).length) g.cats[key] = rule;
+      }
+    }
 
     if (isObj(f.rows)) {
       for (const id of Object.keys(f.rows)) {
@@ -331,11 +402,8 @@
 
   function gridsToFile() {
     const g = st.grids;
-    const scale = {};
 
-    for (const k of ['all', 'bag', 'vehicle', 'storage']) if (g[k] !== 1) scale[k] = g[k];
-
-    return { scale, rows: g.rows };
+    return { scale: g.all !== 1 ? { all: g.all } : {}, cats: g.cats, rows: g.rows };
   }
 
   function itemsFromFile(f) {
@@ -436,18 +504,20 @@
 
   // ===== Shared drawing =====
 
-  function stepper(act, value, unit, extra) {
-    return '<span class="stp" data-act="' + act + '"' + (extra || '') + '><b data-d="-1">&minus;</b><input value="' + esc(value) + '"><b data-d="1">+</b>' + (unit ? '<i>' + unit + '</i>' : '') + '</span>';
+  function stepper(act, value, unit, extra, placeholder) {
+    return '<span class="stp" data-act="' + act + '"' + (extra || '') + '><b data-d="-1">&minus;</b><input value="' + esc(value) + '"' + (placeholder ? ' placeholder="' + esc(placeholder) + '"' : '') + '><b data-d="1">+</b>' + (unit ? '<i>' + unit + '</i>' : '') + '</span>';
   }
 
-  function bindStepper(root, act, step, min, max, set) {
+  // An empty box (a category side that follows the multiplier) steps from start().
+  function bindStepper(root, act, step, min, max, set, start) {
     root.querySelectorAll('.stp[data-act="' + act + '"]').forEach(el => {
       const input = el.querySelector('input');
       const clamp = v => Math.min(max, Math.max(min, Math.round(v / step) * step));
       const apply = v => { set(+clamp(v).toFixed(2), el); rerender(); };
+      const now = () => isNum(parseFloat(input.value)) ? parseFloat(input.value) : start ? start() : min;
 
-      el.querySelectorAll('b').forEach(b => b.onclick = () => apply(parseFloat(input.value) + step * +b.dataset.d));
-      input.onchange = () => apply(isNum(parseFloat(input.value)) ? parseFloat(input.value) : min);
+      el.querySelectorAll('b').forEach(b => b.onclick = () => apply(now() + step * +b.dataset.d));
+      input.onchange = () => input.value.trim() === '' && start ? (set(null, el), rerender()) : apply(now());
     });
   }
 
@@ -471,7 +541,7 @@
     try {
       if (s && s.error) ctx.footer('<b>' + FILES[kind] + '</b> &middot; ' + T('not saved: ', '未保存：') + esc(s.error), true);
       else if (s && s.pending) ctx.footer('<b>' + FILES[kind] + '</b> &middot; ' + T('saving', '正在保存'), false);
-      else ctx.footer(T('Saved to <b>' + FILES[kind] + '</b>. Changes apply when you load a save.', '保存在 <b>' + FILES[kind] + '</b>。读档时生效。'), false);
+      else ctx.footer(T('Saved to <b>' + FILES[kind] + '</b>. In a game, changes apply right away.', '保存在 <b>' + FILES[kind] + '</b>。游戏中立即生效。'), false);
     } catch (e) { /* Mod Manager's footer is gone; the tab still works */ }
   }
 
@@ -535,18 +605,44 @@
     ui.entry = entry.key;
     ui.level = Math.min(ui.level, entry.rows.length - 1);
 
-    body.innerHTML = '<div class="pr">' + gridsTop() + '<div class="pr-main"><div class="pr-side">' + entryFinder() + '<div class="lr-list pr-list">' + entryList() + '</div></div>'
-      + '<div class="pr-ed">' + entryEditor(entry) + '</div></div>' + resetButton('reset-grids', T('RESET ALL INVENTORIES', '全部恢复默认')) + '</div>';
+    const fit = fitHeights(body);
+
+    body.innerHTML = '<div class="pr" style="--pr-list:' + fit.list + 'px;--pr-ed:' + fit.main + 'px">' + gridsTop() + '<div class="pr-main"><div class="pr-side">' + entryFinder() + '<div class="lr-list pr-list">' + entryList() + '</div></div>'
+      + '<div class="pr-ed">' + entryEditor(entry, fit.preview) + '</div></div>' + resetButton('reset-grids', T('RESET ALL INVENTORIES', '全部恢复默认')) + '</div>';
     bindGrids(body, entry);
+  }
+
+  // The tab fits the window: the list, the editor and the grid preview share what is left below the tab's top.
+  function fitHeights(body) {
+    const top = typeof body.getBoundingClientRect === 'function' ? body.getBoundingClientRect().top : 0;
+    const win = isNum(window.innerHeight) && window.innerHeight > 0 ? window.innerHeight : 1080;
+    const main = Math.max(380, Math.min(720, Math.round(win - Math.max(0, top) - 210)));
+
+    return { main, list: main - 84, preview: Math.max(140, main - 300) };
+  }
+
+  function categoryName(cat) {
+    const c = CATEGORY[cat];
+
+    return T(c.en, c.zh);
+  }
+
+  function catSummary(cat) {
+    const rule = catRule(cat);
+    const bits = [];
+
+    if (isNum(rule.x) && rule.x !== 1) bits.push(rule.x.toFixed(2) + 'x');
+    if (rule.w || rule.h) bits.push((rule.w || '-') + 'x' + (rule.h || '-'));
+
+    return bits.join(' &middot; ');
   }
 
   function gridsTop() {
     const g = st.grids;
-    const scale = (key, label) => '<div class="pr-scale' + (g[key] !== 1 ? ' chg' : '') + '"><span>' + label + '</span>' + stepper('scale', g[key].toFixed(2), 'x', ' data-key="' + key + '"') + '</div>';
 
     return '<div class="pr-top"><div class="pr-top-l"><div class="pr-top-t">' + T('SIZE MULTIPLIER', '大小倍率') + '</div>'
-      + scale('all', T('All', '全部')) + scale('bag', T('Bags', '背包')) + scale('vehicle', T('Vehicles', '载具')) + scale('storage', T('Storage', '储物'))
-      + '</div><div class="pr-top-r"><span>' + T('Preview', '预览') + '</span><div class="pr-seg">'
+      + '<div class="pr-scale' + (g.all !== 1 ? ' chg' : '') + '"><span>' + T('All inventories', '全部库存') + '</span>' + stepper('scale', g.all.toFixed(2), 'x') + '</div>'
+      + '<em>' + T('Each category below can have its own.', '下方每个类别都可以单独设置。') + '</em></div><div class="pr-top-r"><span>' + T('Preview', '预览') + '</span><div class="pr-seg">'
       + Object.keys(LOADS).map(k => '<span data-load="' + k + '"' + (ui.load === k ? ' class="on"' : '') + '>' + T(LOADS[k].en, LOADS[k].zh) + '</span>').join('') + '</div></div></div>';
   }
 
@@ -572,9 +668,12 @@
     let grp = '';
 
     for (const e of ENTRIES.filter(entryMatches)) {
-      if (e.grp !== grp) out += '<div class="pr-grp">' + T(GROUPS[e.grp][0], GROUPS[e.grp][1]) + '</div>';
+      if (e.cat !== grp) {
+        const sum = catSummary(e.cat);
+        out += '<div class="pr-grp" data-entry="' + esc(e.key) + '">' + categoryName(e.cat) + (sum ? '<i>' + sum + '</i>' : '') + '</div>';
+      }
 
-      grp = e.grp;
+      grp = e.cat;
       const r = e.rows[0];
       const g = gridOf(r.id);
       const isChanged = isEntryChanged(e);
@@ -589,35 +688,52 @@
     return out || '<div class="gv-empty">' + T('Nothing matches.', '没有匹配项。') + '</div>';
   }
 
-  function entryEditor(e) {
+  function entryEditor(e, previewH) {
     const r = e.rows[ui.level];
     const g = gridOf(r.id);
     const own = st.grids.rows[r.id] || {};
-    const scale = gridScale(r.grp);
+    const scale = gridScale(r.cat);
+    const rule = catRule(r.cat);
     const cells = g.w * g.h;
     const gameCells = g.gameW * g.gameH;
     const diff = Math.round((cells / gameCells - 1) * 100);
     const fits = g.w <= 16 && g.h <= 12;
     const pieces = r.npieces ? r.pieces.slice(0, 4).map(nameOf).join(', ') + (r.npieces > 4 ? T(' and ' + (r.npieces - 4) + ' more', ' 等 ' + r.npieces + ' 种') : '') : '';
     const levels = e.rows.length > 1 ? '<div class="pr-levels">' + e.rows.map((x, i) => { const xg = gridOf(x.id); return '<span data-level="' + i + '"' + (i === ui.level ? ' class="on"' : '') + '>' + T('Level ', '等级 ') + (i + 1) + ' <i>' + xg.w + 'x' + xg.h + '</i></span>'; }).join('') + '</div>' : '';
-    const ownGroup = st.grids[r.grp] !== 1;
-    const from = own.w || own.h ? T('Custom', '自定义') : scale !== 1 ? T((ownGroup ? GROUPS[r.grp][0] : 'All') + ' multiplier (' + scale.toFixed(2) + 'x)', (ownGroup ? GROUPS[r.grp][1] : '全部') + '倍率（' + scale.toFixed(2) + 'x）') : T('Default', '默认');
+    const ownCat = isNum(rule.x) && rule.x !== 1;
+    const from = own.w || own.h ? T('Custom', '自定义') : rule.w || rule.h ? T('Category size', '类别大小')
+      : scale !== 1 ? T((ownCat ? 'Category' : 'All') + ' multiplier (' + scale.toFixed(2) + 'x)', (ownCat ? '类别' : '全部') + '倍率（' + scale.toFixed(2) + 'x）') : T('Default', '默认');
     const accept = r.accept ? catNames(r.accept) : null;
 
-    return '<div class="pr-ed-h">' + img(e.icon) + '<div><div class="pr-ed-t">' + esc(nameOf(e.name)) + '</div><div class="pr-ed-s">' + (pieces ? T('Used by ', '用于：') + esc(pieces) : T(GROUPS[r.grp][0], GROUPS[r.grp][1]))
+    return '<div class="pr-ed-h">' + img(e.icon) + '<div><div class="pr-ed-t">' + esc(nameOf(e.name)) + '</div><div class="pr-ed-s">' + categoryName(r.cat) + (pieces ? ' &middot; ' + T('Used by ', '用于：') + esc(pieces) : '')
       + (accept ? ' &middot; ' + T(accept[0] + ' only', '仅限' + accept[1]) : '') + '</div></div>' + levels + '</div>'
-      + '<div class="pr-ctl"><div><label>' + T('Columns', '列') + '</label>' + stepper('w', g.w, '', ' data-id="' + r.id + '"') + '</div>'
+      + inventoryCatEditor(r)
+      + '<div class="pr-ctl"><div class="pr-ctl-t">' + T('This inventory', '此库存') + '</div><div><label>' + T('Columns', '列') + '</label>' + stepper('w', g.w, '', ' data-id="' + r.id + '"') + '</div>'
       + '<div><label>' + T('Rows', '行') + '</label>' + stepper('h', g.h, '', ' data-id="' + r.id + '"') + '</div>'
       + '<div><label>' + T('Weight limit', '负重上限') + '</label>' + (g.gameLimit > 0 || own.kg != null ? stepper('kg', (g.limit / 1000).toFixed(1), 'kg', ' data-id="' + r.id + '"') : '<span class="pr-nolimit">' + T('No limit', '无上限') + '</span>') + '</div>'
       + '<div class="pr-from"><label>' + T('Source', '来源') + '</label><b>' + from + '</b>' + (g.hasOverride ? '<a data-act="clear-row" data-id="' + r.id + '">' + T('Reset', '重置') + '</a>' : '') + '</div>'
       + '<div class="pr-stat"><b>' + cells + '</b> ' + T('cells', '格') + ' <span class="' + (diff > 0 ? 'up' : diff < 0 ? 'down' : '') + '">' + (diff === 0 ? T('(default)', '（默认）') : (diff > 0 ? '+' : '') + diff + '%') + '</span>'
       + '<div class="pr-fit ' + (fits ? 'ok' : 'warn') + '">' + (fits ? T('Fits on a 1080p screen', '1080p 屏幕可完整显示') : T('May need scrolling at 1080p', '1080p 下可能需要滚动')) + '</div></div></div>'
-      + gridPreview(r, g);
+      + gridPreview(r, g, previewH);
   }
 
-  function gridPreview(r, g) {
-    const box = { w: 760, h: 420 };
-    const cell = Math.max(10, Math.min(40, Math.floor(box.w / Math.max(g.w, g.gameW)), Math.floor(box.h / Math.max(g.h, g.gameH))));
+  // The category's own size for every inventory in it, and its own multiplier. A blank side follows the multiplier.
+  function inventoryCatEditor(r) {
+    const rule = catRule(r.cat);
+    const n = ENTRIES.filter(e => e.cat === r.cat).length;
+    const isSet = Object.keys(rule).length > 0;
+    const auto = T('auto', '自动');
+
+    return '<div class="pr-ctl pr-catctl' + (isSet ? ' chg' : '') + '"><div class="pr-ctl-t">' + T('Category', '类别') + '<b>' + categoryName(r.cat) + '</b><i>' + T(n + (n === 1 ? ' inventory' : ' inventories'), n + ' 个库存') + '</i></div>'
+      + '<div><label>' + T('Multiplier', '倍率') + '</label>' + stepper('cx', (isNum(rule.x) ? rule.x : 1).toFixed(2), 'x') + '</div>'
+      + '<div><label>' + T('Columns', '列') + '</label>' + stepper('cw', rule.w || '', '', '', auto) + '</div>'
+      + '<div><label>' + T('Rows', '行') + '</label>' + stepper('ch', rule.h || '', '', '', auto) + '</div>'
+      + (isSet ? '<div class="pr-from"><label>&nbsp;</label><a data-act="clear-cat">' + T('Reset', '重置') + '</a></div>' : '') + '</div>';
+  }
+
+  function gridPreview(r, g, boxH) {
+    const box = { w: 600, h: boxH || 300 };
+    const cell = Math.max(8, Math.min(36, Math.floor(box.w / Math.max(g.w, g.gameW)), Math.floor(box.h / Math.max(g.h, g.gameH))));
     const load = sampleLoad(ui.load).filter(it => !r.accept || it.cat === r.accept);
     const { placed, left } = pack(g.w, g.h, load);
     const grams = placed.reduce((sum, p) => sum + gramsOf(p.it).g, 0);
@@ -635,8 +751,8 @@
       : left.length ? '<b class="warn">' + T(left.length + ' of ' + load.length + ' items don\'t fit.', load.length + ' 件物品中有 ' + left.length + ' 件放不下。') + '</b> ' + (shrunk ? T('In game, they go into shopping bags in the living room.', '游戏中会装进客厅的购物袋。') : '')
       : '<b class="ok">' + T('All ' + load.length + ' items fit.', load.length + ' 件物品全部放得下。') + '</b> ' + T(free + ' cells free.', '剩余 ' + free + ' 格。');
 
-    return '<div class="pr-pv"><div class="pr-canvas" style="width:' + Math.max(g.w, g.gameW) * cell + 'px;height:' + Math.max(g.h, g.gameH) * cell + 'px">'
-      + '<div class="pr-cells" style="width:' + g.w * cell + 'px;height:' + g.h * cell + 'px;background-size:' + cell + 'px ' + cell + 'px"></div>' + ghost + tiles + '</div>'
+    return '<div class="pr-pv"><div class="pr-pv-c" style="max-height:' + (box.h + 24) + 'px"><div class="pr-canvas" style="width:' + Math.max(g.w, g.gameW) * cell + 'px;height:' + Math.max(g.h, g.gameH) * cell + 'px">'
+      + '<div class="pr-cells" style="width:' + g.w * cell + 'px;height:' + g.h * cell + 'px;background-size:' + cell + 'px ' + cell + 'px"></div>' + ghost + tiles + '</div></div>'
       + '<div class="pr-pv-f"><div>' + verdict + '</div>' + weightBar + '</div></div>';
   }
 
@@ -649,13 +765,19 @@
     body.querySelectorAll('[data-load]').forEach(el => el.onclick = () => { ui.load = el.dataset.load; rerender(); });
     body.querySelectorAll('[data-level]').forEach(el => el.onclick = () => { ui.level = +el.dataset.level; rerender(); });
     bindEntries(body);
-    bindStepper(body, 'scale', 0.25, 0.5, 3, (v, el) => { st.grids[el.dataset.key] = v; changed('grids'); });
+    bindStepper(body, 'scale', 0.25, 0.5, 3, v => { st.grids.all = v; changed('grids'); });
+    bindStepper(body, 'cx', 0.25, 0.5, 3, v => setCat(r.cat, { x: v }));
+    bindStepper(body, 'cw', 1, 1, 30, v => setCat(r.cat, { w: v }), () => baseOf(r).w);
+    bindStepper(body, 'ch', 1, 1, 30, v => setCat(r.cat, { h: v }), () => baseOf(r).h);
     bindStepper(body, 'w', 1, 1, 30, v => setRow(r.id, { w: v }));
     bindStepper(body, 'h', 1, 1, 30, v => setRow(r.id, { h: v }));
     bindStepper(body, 'kg', 0.5, 0.5, 9999, v => setRow(r.id, { kg: v }));
 
     const clear = body.querySelector('[data-act=clear-row]');
     if (clear) clear.onclick = () => { delete st.grids.rows[r.id]; changed('grids'); rerender(); };
+
+    const clearCat = body.querySelector('[data-act=clear-cat]');
+    if (clearCat) clearCat.onclick = () => { delete st.grids.cats[r.cat]; changed('grids'); rerender(); };
 
     bindReset(body, 'reset-grids', () => { st.grids = freshGrids(); changed('grids'); });
   }
@@ -920,7 +1042,49 @@
     return false;
   }
 
-  window.__slpackrat = { data, saved, setItemWeight };
+  // ===== The game's bag screen =====
+
+  // The game shrinks its whole bag screen until the biggest grid fits the window, so a tall bag made everything tiny.
+  // A style in the bag screen's frame caps the grid's box and scrolls the rest. Checked once a second over the live
+  // list of frames; a frame already done is skipped without touching its document.
+  const bag = { frames: null, doc: null };
+
+  function bagScroll() {
+    setTimeout(bagScroll, BAG_POLL_MS);
+
+    const frames = bag.frames;
+
+    for (let i = 0; i < frames.length; i++) {
+      const frame = frames[i];
+
+      if (!frame.isConnected || !BAG_PAGE.test(frame.src)) continue;
+
+      let doc;
+      try { doc = frame.contentDocument; } catch (e) { continue; }
+
+      if (!doc || doc === bag.doc || !doc.head) continue;
+
+      bag.doc = doc;
+
+      if (doc.getElementById(BAG_STYLE_ID)) continue;
+
+      const style = doc.createElement('style');
+      style.id = BAG_STYLE_ID;
+      style.textContent = BAG_CSS;
+      doc.head.appendChild(style);
+
+      // The game works out its shrink on resize; ask it again now the grid has its box.
+      try { doc.defaultView.dispatchEvent(new doc.defaultView.Event('resize')); } catch (e) { /* the next bag change does it */ }
+    }
+  }
+
+  if (typeof document.getElementsByTagName === 'function') {
+    bag.frames = document.getElementsByTagName('iframe');
+    setTimeout(bagScroll, BAG_POLL_MS);
+  }
+
+  // gridOf, categoryOf and gridsFile are read by the tests.
+  window.__slpackrat = { data, saved, setItemWeight, gridOf, categoryOf: id => bagById.has(id) ? bagById.get(id).cat : '', gridsFile: () => JSON.stringify(gridsToFile()) };
 
   if (!Array.isArray(window.__modmanagerTabs)) window.__modmanagerTabs = [];
 

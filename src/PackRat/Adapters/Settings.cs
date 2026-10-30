@@ -7,8 +7,8 @@ using PackRat.Core;
 namespace PackRat.Adapters;
 
 /// <summary>
-/// The config entries and the two tab files. Everything is read when a save loads, so a change made in the Mod
-/// Manager or by hand applies at the next load without a restart.
+/// The config entries and the two tab files. Everything is read when a save loads, and again when a setting or a tab
+/// changes in the middle of a game, so a change applies right away (see <see cref="LiveApply"/>).
 /// </summary>
 internal sealed class Settings
 {
@@ -25,7 +25,15 @@ internal sealed class Settings
         SlowFromEntry = Bind.SlowFrom(config);
         SlowByEntry = Bind.SlowBy(config);
         UninstallPrepEntry = Bind.UninstallPrep(config);
+
+        CarryWeightEntry.SettingChanged += Changed;
+        ItemWeightEntry.SettingChanged += Changed;
+        OverweightEntry.SettingChanged += Changed;
+        SlowFromEntry.SettingChanged += Changed;
+        SlowByEntry.SettingChanged += Changed;
     }
+
+    private static void Changed(object? sender, EventArgs e) => LiveApply.Request();
 
     public string GridsPath { get; }
     public string ItemsPath { get; }
@@ -101,17 +109,17 @@ internal sealed class Settings
         private const string ChoiceZh = "ModManager.ChoiceZh=";
 
         public static ConfigEntry<double> CarryWeight(ConfigFile config) => config.Bind(Weight, "CarryWeight", 2.0,
-            $"How many times more weight every bag, storage piece and vehicle can hold. 2 means twice the game's limit; 1 is the game's own. Places with no weight limit stay without one. The Inventories tab can set a limit for one bag or piece. From {Core.CarryWeight.MinMultiplier} to {Core.CarryWeight.MaxMultiplier}. Takes effect the next time you load a save.\n" +
-            $"所有背包、储物家具和载具的负重上限倍数。2 表示游戏原有负重上限的两倍，1 为游戏原值。原本没有负重上限的地方仍然没有上限。「库存」页面可以为单个背包或家具设置上限。范围 {Core.CarryWeight.MinMultiplier} 到 {Core.CarryWeight.MaxMultiplier}。下次读取存档时生效。");
+            $"How many times more weight every bag, storage piece and vehicle can hold. 2 means twice the game's limit; 1 is the game's own. Places with no weight limit stay without one. The Inventories tab can set a limit for one bag or piece. From {Core.CarryWeight.MinMultiplier} to {Core.CarryWeight.MaxMultiplier}. Applies right away.\n" +
+            $"所有背包、储物家具和载具的负重上限倍数。2 表示游戏原有负重上限的两倍，1 为游戏原值。原本没有负重上限的地方仍然没有上限。「库存」页面可以为单个背包或家具设置上限。范围 {Core.CarryWeight.MinMultiplier} 到 {Core.CarryWeight.MaxMultiplier}。立即生效。");
 
         public static ConfigEntry<double> ItemWeight(ConfigFile config) => config.Bind(Weight, "ItemWeight", 1.0, new ConfigDescription(
-            $"How many times heavier every item is. 1 is the game's weight; 0.5 makes everything half as heavy. The Items tab can set a different multiplier for a category, or a weight for one item. From {Core.ItemWeight.Min} to {Core.ItemWeight.Max}. Takes effect the next time you load a save.\n" +
-            $"每件物品的重量倍数。1 为游戏原值，0.5 让所有物品轻一半。「物品」页面可以为某个类别设置不同的倍数，或为单件物品设置重量。范围 {Core.ItemWeight.Min} 到 {Core.ItemWeight.Max}。下次读取存档时生效。",
+            $"How many times heavier every item is. 1 is the game's weight; 0.5 makes everything half as heavy. The Items tab can set a different multiplier for a category, or a weight for one item. From {Core.ItemWeight.Min} to {Core.ItemWeight.Max}. Applies right away.\n" +
+            $"每件物品的重量倍数。1 为游戏原值，0.5 让所有物品轻一半。「物品」页面可以为某个类别设置不同的倍数，或为单件物品设置重量。范围 {Core.ItemWeight.Min} 到 {Core.ItemWeight.Max}。立即生效。",
             new AcceptableValueRange<double>(Core.ItemWeight.Min, Core.ItemWeight.Max)));
 
         public static ConfigEntry<string> Overweight(ConfigFile config) => config.Bind(Weight, "Overweight", Core.Overweight.DefaultName, new ConfigDescription(
-            "What happens when you carry close to your weight limit. Default: the game slows you down from 80% of the limit. Custom: you choose where the slowdown starts and how strong it is. Hard limit: no slowdown, you just can't pick up more once you reach the limit. Takes effect the next time you load a save.\n" +
-            "负重接近上限时的效果。「默认」(Default)：游戏原样，负重达到上限的 80% 起减速。「自定义」(Custom)：自己设定从哪里开始减速以及减速多少。「硬上限」(Hard limit)：不减速，只是达到上限后无法再拾取。下次读取存档时生效。",
+            "What happens when you carry close to your weight limit. Default: the game slows you down from 80% of the limit. Custom: you choose where the slowdown starts and how strong it is. Hard limit: no slowdown, you just can't pick up more once you reach the limit. Applies right away; a slowdown already on may keep its old strength until it ends.\n" +
+            "负重接近上限时的效果。「默认」(Default)：游戏原样，负重达到上限的 80% 起减速。「自定义」(Custom)：自己设定从哪里开始减速以及减速多少。「硬上限」(Hard limit)：不减速，只是达到上限后无法再拾取。立即生效；如果已经在减速，可能要等这次减速结束后才换成新的强度。",
             new AcceptableValueList<string>(Core.Overweight.Choices), ChoiceZh + Core.Overweight.DefaultName + "=默认", ChoiceZh + Core.Overweight.CustomName + "=自定义", ChoiceZh + Core.Overweight.HardLimitName + "=硬上限"));
 
         public static ConfigEntry<int> SlowFrom(ConfigFile config) => config.Bind(Weight, "SlowFrom", 80, new ConfigDescription(

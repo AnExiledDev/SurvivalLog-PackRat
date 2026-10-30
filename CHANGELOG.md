@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0
+
+- Inventories are now sorted into six categories of about the same size: Bags, Vehicles, Small storage, Medium storage, Large storage and Extra large storage. On the Inventories tab you can set the columns, rows or size multiplier for a whole category at once.
+- A size set for one inventory still beats the size of its category. The old Bags, Vehicles and Storage multipliers carry over to the new categories.
+- Changes now apply right away while you are in a game: bag and storage sizes, weight limits, item sizes and item weights. Outside a game they apply when you load a save.
+- When a bag gets smaller or an item gets bigger during a game, items that no longer fit move to a free spot in the same bag. If the bag is full, they go into the shopping bags in the living room.
+- Very tall or wide bags now get a scrollbar on the bag screen, instead of the whole screen shrinking to fit them.
+- Fixed on the Inventories tab: the weight limit box cut off big numbers, the "default" label covered the grid preview, the first inventory under a heading was hidden, and the preview could run off the bottom of the window.
+- Made for Survival Log 1.1.20151.
+
 ## 0.2.0
 
 - Bags, storage and vehicles can now be bigger, not only hold more weight. Mod Manager has a new Inventories tab: make everything bigger at once, or set the columns, rows and weight limit of one bag or storage piece, with a preview of how a full bag looks.

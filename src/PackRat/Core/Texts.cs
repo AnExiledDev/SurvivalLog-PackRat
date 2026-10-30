@@ -5,7 +5,7 @@ public static class Texts
 {
     public static string Source(bool zh) => zh ? "背包达人" : "Pack Rat";
 
-    public static string Saved(bool zh) => zh ? "已保存，读档时生效。" : "Saved. Applies when you load a save.";
+    public static string Saved(bool zh) => zh ? "已保存。游戏中立即生效，否则读档时生效。" : "Saved. Applies right away in a game, or when you load a save.";
 
     public static string NotSaved(bool zh) => zh ? "未保存：" : "Not saved: ";
 

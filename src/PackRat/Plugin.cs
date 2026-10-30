@@ -13,7 +13,7 @@ namespace PackRat;
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.packrat";
-    private const string Version = "0.2.0";
+    private const string Version = "0.3.0";
     private const string ToolkitGuid = "com.dev.survivallog.exiledtoolkit";
     private const string ToolkitVersion = ">=0.11.0";
 
@@ -30,17 +30,22 @@ public sealed class Plugin : BasePlugin
         LoadHooks.Apply(harmony, settings.Current, Write);
         PageMessages.Apply(harmony, Write);
         Overflow.Done += AfterLoad;
+        LiveApply.Settings = () => _settings;
+        LiveApply.Log = Write;
+        LiveApply.Moved += AfterChange;
         Ticker.Page = page;
         Ticker.Tabs = new Tabs(settings, page, Write);
         Ticker.Log = Write;
         AddComponent<Ticker>();
     }
 
-    private void AfterLoad(Overflow.Placed placed)
-    {
-        var isPrep = _settings?.IsUninstallPrep == true;
+    private void AfterLoad(Overflow.Placed placed) => Report("after the load", _settings?.IsUninstallPrep == true, placed);
 
-        if (placed.Total > 0) Write($"after the load: {placed.ToShoppingBags} items went into the shopping bags, {placed.ToFloor} on the floor, {placed.LeftInPlace} stayed where they were");
+    private void AfterChange(Overflow.Placed placed) => Report("after a change", false, placed);
+
+    private void Report(string when, bool isPrep, Overflow.Placed placed)
+    {
+        if (placed.Total > 0) Write($"{when}: {placed.ToShoppingBags} items went into the shopping bags, {placed.ToFloor} on the floor, {placed.LeftInPlace} stayed where they were");
 
         var zh = GameLanguage.IsChinese();
 

@@ -78,10 +78,11 @@ public class InventoriesTests
     [Fact]
     public void An_inventory_own_size_beats_its_category_side_by_side()
     {
-        var settings = Parse("""{"cats":{"medium":{"w":10,"h":9}},"rows":{"1004":{"h":12}}}""");
+        var settings = Parse("""{"cats":{"medium":{"w":10,"h":9}},"rows":{"1004":{"h":12},"1001":{"w":7}}}""");
 
         Assert.Equal(new Size(10, 12), settings.GridOf(Fridge, Fridge7));
-        Assert.Equal(new Size(10, 9), settings.GridOf(1001, Cupboard));
+        Assert.Equal(new Size(7, 9), settings.GridOf(1001, Cupboard));
+        Assert.Equal(new Size(10, 9), settings.GridOf(1002, Cupboard));
     }
 
     /// <summary>A file saved before the categories keeps doing what it did for bags, vehicles and storage.</summary>

@@ -35,7 +35,7 @@ With `UninstallPrep` on, items that no longer fit in a smaller bag go into the s
 With Mod Manager installed, Pack Rat adds two tabs to it. They save to their own files in `BepInEx\config`:
 
 - **Inventories** saves to `PackRat.Inventories.json`: the size multiplier for all inventories, the multiplier, columns and rows of each category you changed, and the columns, rows and weight limit of each inventory you changed.
-- **Items** saves to `PackRat.Items.json`: the "All items 1x1" switch, and the sizes and weights set for categories and single items.
+- **Items** saves to `PackRat.Items.json`: the "All items 1x1" and "All items half size" switches, and the sizes and weights set for categories and single items.
 
 Every inventory is in one of six categories, by its size in the game:
 

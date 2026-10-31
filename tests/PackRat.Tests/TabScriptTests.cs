@@ -85,6 +85,30 @@ public class TabScriptTests
         Assert.Equal("""{"scale":{},"cats":{"vehicles":{"x":1.5}},"rows":{"3":{"kg":40}}}""", page.Text("window.__slpackrat.gridsFile()"));
     }
 
+    /// <summary>With All items half size on, the Items tab shows every item at the size the plugin gives it in game.</summary>
+    [Fact]
+    public void The_page_halves_every_item_the_way_the_plugin_does()
+    {
+        var page = new Page();
+
+        page.Run("window.__slpackrat.data({ itemsFile: { allHalf: true } })");
+
+        var rows = page.Text(
+            "window.__slpackratData.items.filter(function (a) { return a[3] > 0 && a[4] > 0; })" +
+            ".map(function (a) { return a[3] + 'x' + a[4] + '=' + window.__slpackrat.sizeOf(a[0]); }).join(' ')").Split(' ');
+
+        Assert.True(rows.Length > 1000, rows.Length + " items");
+        Assert.Contains(rows, row => row.StartsWith("3x2="));
+
+        foreach (var row in rows)
+        {
+            var game = row.Split('=')[0].Split('x').Select(int.Parse).ToArray();
+            var half = PackRat.Core.Items.Half(new PackRat.Core.Size(game[0], game[1]));
+
+            Assert.Equal(row.Split('=')[0] + "=" + half.W + "x" + half.H, row);
+        }
+    }
+
     [Fact]
     public void An_inventory_the_plugin_did_not_name_falls_into_a_category_by_its_size()
     {

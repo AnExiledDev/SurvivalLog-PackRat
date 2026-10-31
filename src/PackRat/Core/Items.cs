@@ -31,30 +31,51 @@ public sealed class Items
     public const double MaxX = 5;
     public const int MaxGrams = 500_000;
 
-    public static readonly Items Default = new(false, new Dictionary<int, GroupRule>(), new Dictionary<int, GroupRule>(), new Dictionary<int, ItemRule>());
+    public static readonly Items Default = new(false, false, new Dictionary<int, GroupRule>(), new Dictionary<int, GroupRule>(), new Dictionary<int, ItemRule>());
 
-    public Items(bool allOne, IReadOnlyDictionary<int, GroupRule> cats, IReadOnlyDictionary<int, GroupRule> subs, IReadOnlyDictionary<int, ItemRule> ids)
+    public Items(bool allOne, bool allHalf, IReadOnlyDictionary<int, GroupRule> cats, IReadOnlyDictionary<int, GroupRule> subs, IReadOnlyDictionary<int, ItemRule> ids)
     {
         AllOne = allOne;
+        AllHalf = allHalf;
         Cats = cats;
         Subs = subs;
         Ids = ids;
     }
 
     public bool AllOne { get; }
+    public bool AllHalf { get; }
     public IReadOnlyDictionary<int, GroupRule> Cats { get; }
     public IReadOnlyDictionary<int, GroupRule> Subs { get; }
     public IReadOnlyDictionary<int, ItemRule> Ids { get; }
 
-    /// <summary>The item's own size, then its food group, then its category, then All items 1x1, then the game's.</summary>
+    /// <summary>
+    /// The item's own size, then its food group, then its category, then All items 1x1, then All items half size, then
+    /// the game's.
+    /// </summary>
     public Size SizeOf(int id, int category, int subCategory, Size game)
     {
         if (Ids.TryGetValue(id, out var own) && own.Size is Size ownSize) return ownSize;
         if (SubOf(category, subCategory)?.Size is Size subSize) return subSize;
         if (Cats.TryGetValue(category, out var cat) && cat.Size is Size catSize) return catSize;
         if (AllOne) return new Size(1, 1);
+        if (AllHalf) return Half(game);
 
         return game;
+    }
+
+    /// <summary>
+    /// Each side halved and rounded down, never under 1. A long item whose halves would come out square rounds its long
+    /// side up instead, so a 3x2 item becomes 2x1 and stays long, while a 2x1 item can only become 1x1.
+    /// </summary>
+    public static Size Half(Size game)
+    {
+        var w = Math.Max(MinSide, game.W / 2);
+        var h = Math.Max(MinSide, game.H / 2);
+
+        if (w == h && game.W > game.H) w = (game.W + 1) / 2;
+        else if (w == h && game.H > game.W) h = (game.H + 1) / 2;
+
+        return new Size(w, h);
     }
 
     /// <summary>The item's own grams, then the game's weight times its food group's, its category's or the overall multiplier.</summary>
@@ -114,7 +135,7 @@ public sealed class Items
             }
         }
 
-        settings = new Items(Json.Bool(root["allOne"]), Groups(root["cats"]), Groups(root["subs"]), ids);
+        settings = new Items(Json.Bool(root["allOne"]), Json.Bool(root["allHalf"]), Groups(root["cats"]), Groups(root["subs"]), ids);
 
         return true;
     }
@@ -160,6 +181,7 @@ public sealed class Items
         return new JsonObject
         {
             ["allOne"] = AllOne,
+            ["allHalf"] = AllHalf,
             ["cats"] = All(Cats, Group),
             ["subs"] = All(Subs, Group),
             ["ids"] = All(Ids, rule =>

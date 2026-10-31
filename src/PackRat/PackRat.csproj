@@ -29,9 +29,10 @@
     <Reference Include="$(ToolkitDll)" Private="false" />
   </ItemGroup>
 
-  <!-- The Inventories and Items tabs, sent into the game's web UI. -->
+  <!-- The Inventories and Items tabs and the scrolling grids, sent into the game's web UI. -->
   <ItemGroup>
     <EmbeddedResource Include="Page\tab.js" LogicalName="PackRat.tab.js" />
+    <EmbeddedResource Include="Page\bags.js" LogicalName="PackRat.bags.js" />
     <EmbeddedResource Include="Page\tab.css" LogicalName="PackRat.tab.css" />
     <EmbeddedResource Include="Page\data.js" LogicalName="PackRat.data.js" />
   </ItemGroup>

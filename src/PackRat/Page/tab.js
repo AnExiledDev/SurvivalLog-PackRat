@@ -2,8 +2,7 @@
 // PackRat.Items.json; both apply right away in a game, or when a save loads. Runs in Root.html and only once: the plugin sends it
 // again whenever the web view lost it. Talks to the plugin through vuplex.postMessage("slmod|packrat|...") and is
 // answered through window.__slpackrat. The names and icons of the game's inventories and items come once per page
-// as window.__slpackratData; the game's live sizes and weights come with every load. It also gives the game's own bag
-// screen a scrollbar for grids too big for the window (see bagScroll).
+// as window.__slpackratData; the game's live sizes and weights come with every load.
 (function () {
   if (window.__slpackrat) return;
 
@@ -32,18 +31,6 @@
   const CATEGORY = {};
   CATEGORIES.forEach((c, i) => { c.order = i; CATEGORY[c.key] = c; });
   const VEHICLE_IDS = [3, 4, 1022, 1023, 115003];
-
-  // The game's bag screen: a style that puts a scrollbar on a grid too big for the window, instead of the game
-  // shrinking the whole screen to fit it.
-  const BAG_PAGE = /BackpackUI\.html/;
-  const BAG_STYLE_ID = 'slpackrat-bag-scroll';
-  const BAG_POLL_MS = 1000;
-  const BAG_CSS = '.grid-wrapper{max-height:calc(100vh - 300px);max-width:46vw;overflow:auto;justify-content:flex-start;scrollbar-width:thin}'
-    + '.grid-wrapper>.grid-container{flex:none;margin:0 auto}'
-    + '.grid-wrapper::-webkit-scrollbar{width:8px;height:8px}'
-    + '.grid-wrapper::-webkit-scrollbar-track{background:rgba(0,0,0,0.35)}'
-    + '.grid-wrapper::-webkit-scrollbar-thumb{background:rgba(255,200,58,0.45);border-radius:4px}'
-    + '.grid-wrapper::-webkit-scrollbar-corner{background:transparent}';
 
   const LOADS = {
     haul: { en: 'Scavenging run', zh: '一次普通搜刮', picks: [[1, 10], [9, 8], [2, 3], [3, 2], [6, 2], [19, 2], [13, 1], [14, 2]] },
@@ -92,7 +79,7 @@
   }
 
   function freshItems() {
-    return { allOne: false, cats: {}, subs: {}, ids: {} };
+    return { allOne: false, allHalf: false, cats: {}, subs: {}, ids: {} };
   }
 
   const T = (en, zh) => st.lang === 'zh' ? zh : en;
@@ -257,7 +244,8 @@
     return e.rows.some(r => { const g = gridOf(r.id); return g.w !== g.gameW || g.h !== g.gameH || g.hasOverride; });
   }
 
-  // Item setting beats food group, which beats category, which beats "All items 1x1", which beats the game.
+  // Item setting beats food group, which beats category, which beats "All items 1x1", then "All items half size", then
+  // the game.
   function sizeOf(it) {
     const s = st.items;
     const own = s.ids[it.id];
@@ -269,8 +257,20 @@
     const cat = s.cats[it.cat];
     if (cat && cat.size) return { w: cat.size[0], h: cat.size[1], from: 'cat' };
     if (s.allOne) return { w: 1, h: 1, from: 'all' };
+    if (s.allHalf) return Object.assign(halfOf(it), { from: 'half' });
 
     return { w: it.w, h: it.h, from: 'game' };
+  }
+
+  // Each side halved and rounded down, never under 1; a long item whose halves would come out square stays long.
+  function halfOf(it) {
+    let w = Math.max(1, Math.floor(it.w / 2));
+    let h = Math.max(1, Math.floor(it.h / 2));
+
+    if (w === h && it.w > it.h) w = Math.ceil(it.w / 2);
+    else if (w === h && it.h > it.w) h = Math.ceil(it.h / 2);
+
+    return { w, h };
   }
 
   function gramsOf(it) {
@@ -411,6 +411,7 @@
     if (!isObj(f)) return s;
 
     s.allOne = f.allOne === true;
+    s.allHalf = f.allHalf === true;
 
     for (const kind of ['cats', 'subs', 'ids']) {
       if (!isObj(f[kind])) continue;
@@ -571,6 +572,78 @@
     };
   }
 
+  // A redraw changes only the parts of the page that differ from what is shown: the lists keep their scroll, the box
+  // being typed in keeps its focus, and the item pictures are not loaded again.
+  function patch(body, html) {
+    const tpl = document.createElement('template');
+    tpl.innerHTML = html;
+
+    const next = tpl.content.firstElementChild;
+    const old = body.firstElementChild;
+
+    if (old && old.tagName === next.tagName) morph(old, next);
+    else { body.textContent = ''; body.appendChild(next); }
+  }
+
+  function morph(old, next) {
+    for (const a of [...old.attributes]) if (!next.hasAttribute(a.name)) old.removeAttribute(a.name);
+
+    let valueChanged = false;
+    for (const a of next.attributes) {
+      if (old.getAttribute(a.name) === a.value) continue;
+      if (a.name === 'value') valueChanged = true;
+      old.setAttribute(a.name, a.value);
+    }
+
+    // The bind functions set the handlers again after each redraw; a node now doing another job must not keep the old ones.
+    if (old.onclick) old.onclick = null;
+    if (old.onchange) old.onchange = null;
+    if (old.oninput) old.oninput = null;
+
+    if (old.tagName === 'INPUT') {
+      const value = next.getAttribute('value') || '';
+      if (old.value !== value && (valueChanged || old !== document.activeElement)) old.value = value;
+      if (old.type === 'checkbox') old.checked = next.hasAttribute('checked');
+
+      return;
+    }
+
+    let o = old.firstChild;
+    let n = next.firstChild;
+
+    while (n) {
+      const after = n.nextSibling;
+
+      if (!o) old.appendChild(n);
+      else if (o.nodeType === n.nodeType && (o.nodeType !== 1 || o.tagName === n.tagName)) {
+        if (o.nodeType === 1) morph(o, n);
+        else if (o.nodeValue !== n.nodeValue) o.nodeValue = n.nodeValue;
+        o = o.nextSibling;
+      } else {
+        const gone = o;
+        o = o.nextSibling;
+        old.replaceChild(n, gone);
+      }
+
+      n = after;
+    }
+
+    while (o) {
+      const gone = o;
+      o = o.nextSibling;
+      old.removeChild(gone);
+    }
+  }
+
+  // The editor scrolls back to the top only when it shows something else; a list only when it is filtered another way.
+  function keepScroll(body, sel, key) {
+    const el = body.querySelector(sel);
+    if (!el) return;
+
+    if (el.__prKey !== undefined && el.__prKey !== key) el.scrollTop = 0;
+    el.__prKey = key;
+  }
+
   function rerender() {
     if (!st.shown) return;
 
@@ -580,7 +653,7 @@
     const body = tab.root;
 
     if (!st.loaded) {
-      body.innerHTML = '<div class="pr"><div class="pr-loading">' + T('Loading the game\'s inventories and items...', '正在读取游戏的库存和物品...') + '</div></div>';
+      patch(body, '<div class="pr"><div class="pr-loading">' + T('Loading the game\'s inventories and items...', '正在读取游戏的库存和物品...') + '</div></div>');
       askForData();
 
       return;
@@ -598,7 +671,7 @@
     const entry = ENTRIES.find(e => e.key === ui.entry) || ENTRIES[0];
 
     if (!entry) {
-      body.innerHTML = '<div class="pr"><div class="gv-empty">' + T('No inventories found.', '没有找到库存。') + '</div></div>';
+      patch(body, '<div class="pr"><div class="gv-empty">' + T('No inventories found.', '没有找到库存。') + '</div></div>');
       return;
     }
 
@@ -607,8 +680,10 @@
 
     const fit = fitHeights(body);
 
-    body.innerHTML = '<div class="pr" style="--pr-list:' + fit.list + 'px;--pr-ed:' + fit.main + 'px">' + gridsTop() + '<div class="pr-main"><div class="pr-side">' + entryFinder() + '<div class="lr-list pr-list">' + entryList() + '</div></div>'
-      + '<div class="pr-ed">' + entryEditor(entry, fit.preview) + '</div></div>' + resetButton('reset-grids', T('RESET ALL INVENTORIES', '全部恢复默认')) + '</div>';
+    patch(body, '<div class="pr" style="--pr-list:' + fit.list + 'px;--pr-ed:' + fit.main + 'px">' + gridsTop() + '<div class="pr-main"><div class="pr-side">' + entryFinder() + '<div class="lr-list pr-list">' + entryList() + '</div></div>'
+      + '<div class="pr-ed">' + entryEditor(entry, fit.preview) + '</div></div>' + resetButton('reset-grids', T('RESET ALL INVENTORIES', '全部恢复默认')) + '</div>');
+    keepScroll(body, '.pr-list', ui.ggrp);
+    keepScroll(body, '.pr-ed', entry.key);
     bindGrids(body, entry);
   }
 
@@ -796,8 +871,11 @@
     const item = ui.item != null ? itemById.get(ui.item) : null;
     if (!item) ui.item = null;
 
-    body.innerHTML = '<div class="pr">' + itemsTop() + '<div class="pr-main items"><div class="pr-side"><div class="lr-list pr-cats">' + catList() + '</div></div><div class="pr-ed">' + catEditor() + '</div></div>'
-      + resetButton('reset-items', T('RESET ALL ITEMS', '全部物品恢复默认')) + (item ? itemEditor(item) : '') + '</div>';
+    patch(body, '<div class="pr">' + itemsTop() + '<div class="pr-main items"><div class="pr-side"><div class="lr-list pr-cats">' + catList() + '</div></div><div class="pr-ed">' + catEditor() + '</div></div>'
+      + resetButton('reset-items', T('RESET ALL ITEMS', '全部物品恢复默认')) + (item ? itemEditor(item) : '') + '</div>');
+    keepScroll(body, '.pr-ed', ui.cat + '|' + ui.sub);
+    keepScroll(body, '.pr-tiles', ui.cat + '|' + ui.sub + '|' + ui.iq);
+    holdRow(body);
     bindItems(body, item);
   }
 
@@ -808,8 +886,10 @@
     const bar = counts.slice(0, 6).map(([k, n], i) => '<i class="c' + i + '" style="width:' + (n / total * 100) + '%" title="' + k + ': ' + n + '"></i>').join('');
     const legend = counts.slice(0, 5).map(([k, n], i) => '<span><u class="c' + i + '"></u>' + k + ' <b>' + n.toLocaleString() + '</b></span>').join('');
 
-    return '<div class="pr-top"><div class="pr-top-l"><div class="pr-big' + (s.allOne ? ' on' : '') + '"><div><b>' + T('All items 1x1', '所有物品1x1') + '</b><span>' + T('Category and item settings below override this.', '下方的类别和物品设置会覆盖此项。') + '</span></div>'
-      + '<label class="setting-toggle"><input type="checkbox" data-act="all-one"' + (s.allOne ? ' checked' : '') + '><span class="track"></span><span class="knob"></span></label></div>'
+    const toggle = (act, on) => '<label class="setting-toggle"><input type="checkbox" data-act="' + act + '"' + (on ? ' checked' : '') + '><span class="track"></span><span class="knob"></span></label>';
+
+    return '<div class="pr-top"><div class="pr-top-l"><div class="pr-big' + (s.allOne || s.allHalf ? ' on' : '') + '"><div><div class="pr-sws"><b>' + T('All items 1x1', '所有物品1x1') + '</b>' + toggle('all-one', s.allOne)
+      + '<b>' + T('All items half size', '所有物品占格减半') + '</b>' + toggle('all-half', s.allHalf) + '</div><span>' + T('Category and item settings below override these.', '下方的类别和物品设置会覆盖这两项。') + '</span></div></div>'
       + '<div class="pr-scale' + (st.itemWeight !== 1 ? ' chg' : '') + '"><span>' + T('Item weight', '物品重量') + '</span>' + stepper('iw', st.itemWeight.toFixed(2), 'x') + '</div></div>'
       + '<div class="pr-dist"><div class="pr-dist-t">' + T('Item sizes (' + total.toLocaleString() + ' items)', '物品占格（共 ' + total.toLocaleString() + ' 件）') + '</div><div class="pr-dist-bar">' + bar + '</div><div class="pr-dist-l">' + legend + '</div></div></div>';
   }
@@ -930,6 +1010,7 @@
       + (it.cat === 1 ? step(esc(nameOf(SUBS[it.sub] || { en: 'Other', zh: '其他' })), sub && sub.size ? sub.size.join('x') : '', s.from === 'sub') : '')
       + step(catName, cat && cat.size ? cat.size.join('x') : '', s.from === 'cat')
       + step(T('All items 1x1', '所有物品1x1'), st.items.allOne ? '1x1' : '', s.from === 'all')
+      + step(T('All items half size', '所有物品占格减半'), st.items.allHalf ? halfOf(it).w + 'x' + halfOf(it).h : '', s.from === 'half')
       + step(T('Default', '默认'), it.w + 'x' + it.h, s.from === 'game') + '</ol>';
     const multiplier = g.from === 'all' ? T(' (item weight multiplier applied)', '（已应用物品重量倍率）') : g.from === 'cat' || g.from === 'sub' ? T(' (category multiplier applied)', '（已应用类别倍率）') : '';
     const holdsHtml = holds ? '<label>' + T('Fits in a level 1 backpack', '1级背包可装') + '</label><div class="pr-holds"><b>' + holds.n.toLocaleString() + '</b> ' + T('of these', '件') + '<span>' + (holds.limitedBy === 'weight' ? T('(weight limit)', '（受重量限制）') : T('(space)', '（受空间限制）')) + '</span></div>'
@@ -952,6 +1033,21 @@
     return '<div class="pr-canvas" style="width:' + bp.w * cell + 'px;height:' + bp.h * cell + 'px"><div class="pr-cells" style="width:100%;height:100%;background-size:' + cell + 'px ' + cell + 'px"></div>' + tiles + '</div>';
   }
 
+  function catRow(cat, sub) {
+    return '[data-cat="' + cat + '"]' + (sub == null ? ':not([data-sub])' : '[data-sub="' + sub + '"]');
+  }
+
+  // Food's groups open under it only while Food is picked, so picking another category moves the rows below; the row
+  // just clicked stays under the pointer.
+  function holdRow(body) {
+    const held = ui.held;
+    ui.held = null;
+
+    const list = body.querySelector('.pr-cats');
+    const row = held && list && list.querySelector(held.sel);
+    if (row) list.scrollTop += row.getBoundingClientRect().top - held.top;
+  }
+
   function bindSizes(root, act, set) {
     const box = root.querySelector('.pr-szs[data-act="' + act + '"]');
     if (!box) return;
@@ -964,8 +1060,17 @@
     const ruleKind = ui.sub == null ? 'cats' : 'subs';
     const ruleKey = ui.sub == null ? ui.cat : ui.sub;
 
-    body.querySelector('[data-act=all-one]').onchange = e => { st.items.allOne = e.target.checked; changed('items'); rerender(); };
-    body.querySelectorAll('[data-cat]').forEach(el => el.onclick = () => { ui.cat = +el.dataset.cat; ui.sub = el.dataset.sub != null ? +el.dataset.sub : null; ui.shown = SHOWN_STEP; ui.iq = ''; rerender(); });
+    // The two switches are one choice: turning one on turns the other off.
+    body.querySelector('[data-act=all-one]').onchange = e => { st.items.allOne = e.target.checked; if (st.items.allOne) st.items.allHalf = false; changed('items'); rerender(); };
+    body.querySelector('[data-act=all-half]').onchange = e => { st.items.allHalf = e.target.checked; if (st.items.allHalf) st.items.allOne = false; changed('items'); rerender(); };
+    body.querySelectorAll('[data-cat]').forEach(el => el.onclick = () => {
+      ui.cat = +el.dataset.cat;
+      ui.sub = el.dataset.sub != null ? +el.dataset.sub : null;
+      ui.shown = SHOWN_STEP;
+      ui.iq = '';
+      ui.held = { sel: catRow(ui.cat, ui.sub), top: el.getBoundingClientRect().top };
+      rerender();
+    });
     body.querySelectorAll('[data-item]').forEach(el => el.onclick = () => { ui.item = +el.dataset.item; rerender(); });
     iq.oninput = () => {
       ui.iq = iq.value;
@@ -973,7 +1078,7 @@
       rerender();
 
       const again = body.querySelector('.pr-iq');
-      if (again) { again.focus(); again.setSelectionRange(again.value.length, again.value.length); }
+      if (again && document.activeElement !== again) { again.focus(); again.setSelectionRange(again.value.length, again.value.length); }
     };
 
     const more = body.querySelector('[data-act=more]');
@@ -1042,49 +1147,8 @@
     return false;
   }
 
-  // ===== The game's bag screen =====
-
-  // The game shrinks its whole bag screen until the biggest grid fits the window, so a tall bag made everything tiny.
-  // A style in the bag screen's frame caps the grid's box and scrolls the rest. Checked once a second over the live
-  // list of frames; a frame already done is skipped without touching its document.
-  const bag = { frames: null, doc: null };
-
-  function bagScroll() {
-    setTimeout(bagScroll, BAG_POLL_MS);
-
-    const frames = bag.frames;
-
-    for (let i = 0; i < frames.length; i++) {
-      const frame = frames[i];
-
-      if (!frame.isConnected || !BAG_PAGE.test(frame.src)) continue;
-
-      let doc;
-      try { doc = frame.contentDocument; } catch (e) { continue; }
-
-      if (!doc || doc === bag.doc || !doc.head) continue;
-
-      bag.doc = doc;
-
-      if (doc.getElementById(BAG_STYLE_ID)) continue;
-
-      const style = doc.createElement('style');
-      style.id = BAG_STYLE_ID;
-      style.textContent = BAG_CSS;
-      doc.head.appendChild(style);
-
-      // The game works out its shrink on resize; ask it again now the grid has its box.
-      try { doc.defaultView.dispatchEvent(new doc.defaultView.Event('resize')); } catch (e) { /* the next bag change does it */ }
-    }
-  }
-
-  if (typeof document.getElementsByTagName === 'function') {
-    bag.frames = document.getElementsByTagName('iframe');
-    setTimeout(bagScroll, BAG_POLL_MS);
-  }
-
   // gridOf, categoryOf and gridsFile are read by the tests.
-  window.__slpackrat = { data, saved, setItemWeight, gridOf, categoryOf: id => bagById.has(id) ? bagById.get(id).cat : '', gridsFile: () => JSON.stringify(gridsToFile()) };
+  window.__slpackrat = { data, saved, setItemWeight, gridOf, categoryOf: id => bagById.has(id) ? bagById.get(id).cat : '', sizeOf: id => { const s = sizeOf(itemById.get(id)); return s.w + 'x' + s.h; }, gridsFile: () => JSON.stringify(gridsToFile()) };
 
   if (!Array.isArray(window.__modmanagerTabs)) window.__modmanagerTabs = [];
 

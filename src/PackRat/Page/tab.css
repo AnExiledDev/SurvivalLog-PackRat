@@ -2,10 +2,10 @@
 #slmm .pr .lr-chips { display: flex; border: 1px solid var(--bl); }
 #slmm .pr .lr-chips span { padding: 6px 14px; font-size: .85rem; color: var(--td); cursor: pointer; letter-spacing: 1px; }
 #slmm .pr .lr-chips span.on { background: rgba(255,200,58,0.14); color: var(--hl); }
-#slmm .pr .lr-list { height: 610px; overflow-y: auto; border: 1px solid var(--bd2); background: rgba(0,0,0,0.22); }
+#slmm .pr .lr-list { height: 610px; overflow-y: auto; overflow-x: hidden; border: 1px solid var(--bd2); background: rgba(0,0,0,0.22); }
 #slmm .pr .lr-list::-webkit-scrollbar{ width: 6px; }
 #slmm .pr .lr-list::-webkit-scrollbar-thumb{ background: rgba(255,200,58,0.3); }
-#slmm .pr .ab { position: relative; display: grid; grid-template-columns: 52px 1fr auto; gap: 14px; align-items: center; padding: 8px 16px; min-height: 66px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04); }
+#slmm .pr .ab { position: relative; display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 8px 16px; min-height: 66px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04); }
 #slmm .pr .ab::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; }
 #slmm .pr .ab:hover { background: linear-gradient(90deg, rgba(255,200,58,0.06), transparent); }
 #slmm .pr .ab.sel { background: linear-gradient(90deg, rgba(255,200,58,0.13), rgba(255,200,58,0.02) 70%, transparent); }
@@ -46,18 +46,19 @@
 #slmm .pr-side { display: flex; flex-direction: column; gap: 8px; }
 #slmm .pr .q { background: rgba(0,0,0,0.45); border: 1px solid var(--bl); color: #fff; padding: 8px 10px; font: 400 .95rem var(--body); outline: none; }
 #slmm .pr .q:focus { border-color: var(--hl); }
-#slmm .pr-chips span { padding: 6px 9px; white-space: nowrap; }
+/* The chips share the row and never push past it: a longer word in another language is cut, not hidden off the side. */
+#slmm .pr-chips span { flex: 1 1 auto; min-width: 0; padding: 6px 4px; text-align: center; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #slmm .pr-chips span i { font-style: normal; font-family: var(--mono); color: var(--tmeta); font-size: .78rem; }
 #slmm .pr .pr-list { height: var(--pr-list, 575px); }
 #slmm .pr-grp { display: flex; justify-content: space-between; gap: 10px; cursor: pointer; padding: 10px 16px 6px; font: 700 .72rem var(--mono); letter-spacing: 2px; color: var(--tmeta); background: #17130f; border-bottom: 1px solid var(--bd2); text-transform: uppercase; }
 #slmm .pr-grp i { font-style: normal; color: var(--hl); letter-spacing: 0; text-transform: none; }
-#slmm .pr-ab { grid-template-columns: 44px 1fr auto; min-height: 56px; }
+#slmm .pr-ab { grid-template-columns: 44px minmax(0, 1fr) auto; min-height: 56px; }
 #slmm .pr-ab img, #slmm .pr-ab .pr-glyph { width: 44px; height: 44px; }
 #slmm .pr-ab .mt { flex-wrap: nowrap; overflow: hidden; white-space: nowrap; }
 #slmm .pr-ab .pr-sub { overflow: hidden; text-overflow: ellipsis; }
 #slmm .pr-ed { min-width: 0; max-height: var(--pr-ed, none); overflow-y: auto; overflow-x: hidden; padding-right: 4px; }
-#slmm .pr-ed::-webkit-scrollbar { width: 6px; }
-#slmm .pr-ed::-webkit-scrollbar-thumb { background: rgba(255,200,58,0.3); }
+#slmm .pr-ed::-webkit-scrollbar, #slmm .pr-tiles::-webkit-scrollbar { width: 6px; }
+#slmm .pr-ed::-webkit-scrollbar-thumb, #slmm .pr-tiles::-webkit-scrollbar-thumb { background: rgba(255,200,58,0.3); }
 #slmm .pr-ed-h { display: flex; align-items: center; gap: 16px; }
 #slmm .pr-ed-h > img, #slmm .pr-ed-h > .pr-glyph { width: 60px; height: 60px; object-fit: contain; }
 #slmm .pr-ed-t { font: 700 1.35rem var(--body); color: #fff; }
@@ -112,6 +113,8 @@
 #slmm .pr-big { display: flex; align-items: center; gap: 18px; padding: 8px 14px; border: 1px solid var(--bl); }
 #slmm .pr-big.on { border-color: var(--hl); background: rgba(255,200,58,0.08); }
 #slmm .pr-big b { display: block; color: #fff; }
+#slmm .pr-sws { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+#slmm .pr-sws b + .setting-toggle + b { margin-left: 14px; }
 #slmm .pr-big span { font-size: .8rem; color: var(--tmeta); }
 #slmm .pr-dist { width: 560px; }
 #slmm .pr-dist-t { font-size: .82rem; color: var(--td); margin-bottom: 4px; }
@@ -121,10 +124,10 @@
 #slmm .pr-dist-l u { display: inline-block; width: 9px; height: 9px; margin-right: 5px; }
 #slmm .pr .c0 { background: #c99a2e; } #slmm .pr .c1 { background: #5f9e95; } #slmm .pr .c2 { background: #a5624a; } #slmm .pr .c3 { background: #7c6fae; } #slmm .pr .c4 { background: #8a8a5a; } #slmm .pr .c5 { background: #555; }
 #slmm .pr-cats { height: 650px; }
-#slmm .pr-cat { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 10px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04); }
+#slmm .pr-cat { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 10px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04); }
 #slmm .pr-cat:hover { background: rgba(255,200,58,0.05); }
 #slmm .pr-cat.sel { background: linear-gradient(90deg, rgba(255,200,58,0.13), transparent); box-shadow: inset 3px 0 0 var(--hl); }
-#slmm .pr-cat .nm { font-weight: 700; }
+#slmm .pr-cat .nm { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #slmm .pr-cat .n { font: .8rem var(--mono); color: var(--tmeta); }
 #slmm .pr-cat.sub { padding: 6px 16px 6px 36px; font-size: .9rem; }
 #slmm .pr-cat.sub .nm { font-weight: 400; color: var(--td); }

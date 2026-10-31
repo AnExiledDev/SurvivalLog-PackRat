@@ -6,10 +6,10 @@ using PackRat.Core;
 namespace PackRat.Adapters;
 
 /// <summary>
-/// The mod's half in the game's web UI: tab.js and its styles, run in the root document the Mod Manager sits in. The
-/// web view can reload at any time and lose the script, so it is checked for every couple of seconds and sent again
-/// when the page says it is missing. The item and inventory names (data.js, about half a megabyte) are sent only when
-/// a tab asks for them.
+/// The mod's half in the game's web UI: tab.js and its styles, and bags.js (scrolling grids on the game's inventory
+/// screens), run in the root document the Mod Manager and every screen sit in. The web view can reload at any time and
+/// lose the scripts, so they are checked for every couple of seconds and sent again when the page says they are
+/// missing. The item and inventory names (data.js, about half a megabyte) are sent only when a tab asks for them.
 /// </summary>
 internal sealed class WebPage
 {
@@ -18,6 +18,7 @@ internal sealed class WebPage
 
     private readonly Action<string> _log;
     private string? _script;
+    private string? _bags;
     private string? _data;
     private float _nextCheckAt;
     private bool _hasReportedRunFailure;
@@ -38,6 +39,8 @@ internal sealed class WebPage
     public void Install()
     {
         _script ??= "window.__slpackratCss=" + JsText.Literal(Resource("PackRat.tab.css")) + ";\n" + Resource("PackRat.tab.js");
+
+        Run(_bags ??= Resource("PackRat.bags.js"));
 
         if (Run(_script)) _log("tab script sent to the web UI");
     }

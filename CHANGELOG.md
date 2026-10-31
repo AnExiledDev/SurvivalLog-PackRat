@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0
+
+- Big bags now scroll on every bag screen, including the Brewing Barrel, the Cooking Station and the Juicer, and the screen looks right as soon as it opens instead of after a short flash.
+- New "All items half size" switch on the Items tab: every item takes half the space, rounded down, and a long item stays long. A 3x2 item becomes 2x1 and a 2x2 item becomes 1x1. Sizes set for a category or a single item still beat it.
+- The Inventories and Items tabs keep their place when you click a button, change a value or pick a category, instead of jumping back to the top.
+- Fixed on the Inventories tab: a horizontal scrollbar that did nothing, and category buttons running past the edge of the window.
+- Made for Survival Log 1.1.20151.
+
 ## 0.3.0
 
 - Inventories are now sorted into six categories of about the same size: Bags, Vehicles, Small storage, Medium storage, Large storage and Extra large storage. On the Inventories tab you can set the columns, rows or size multiplier for a whole category at once.

@@ -13,9 +13,10 @@
     <Compile Include="..\..\src\PackRat\Core\*.cs" Link="Core\%(Filename)%(Extension)" />
   </ItemGroup>
 
-  <!-- The tab script and its data, as the plugin ships them, run in Jint against a fake page. -->
+  <!-- The page scripts and their data, as the plugin ships them, run in Jint against a fake page. -->
   <ItemGroup>
     <EmbeddedResource Include="..\..\src\PackRat\Page\tab.js" LogicalName="PackRat.tab.js" Link="Page\tab.js" />
+    <EmbeddedResource Include="..\..\src\PackRat\Page\bags.js" LogicalName="PackRat.bags.js" Link="Page\bags.js" />
     <EmbeddedResource Include="..\..\src\PackRat\Page\data.js" LogicalName="PackRat.data.js" Link="Page\data.js" />
   </ItemGroup>
 

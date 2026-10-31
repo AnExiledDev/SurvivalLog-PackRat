@@ -9,7 +9,7 @@ Survival Log limits how much your backpack, your storage furniture, the shopping
 - **More carry weight everywhere**: set `CarryWeight` to how many times more weight everything can hold. 2 (the default) means twice the game's limit. Any value from 0.1 to 1000 works, and a value below 1 makes the game harder.
 - **Bigger bags and storage** (Inventories tab in Mod Manager): make everything bigger at once, set the size of a whole category, or set the columns, rows and weight limit of one bag or storage piece. A preview shows how a full bag looks at the new size.
 - **Categories of about the same size**: Bags, Vehicles, Small storage, Medium storage, Large storage and Extra large storage. Setting the columns and rows of a category gives every inventory in it that size. A size set for one inventory beats its category.
-- **Smaller, lighter items** (Items tab in Mod Manager): make every item 1x1, or set a size or weight for a whole category, a food group or a single item.
+- **Smaller, lighter items** (Items tab in Mod Manager): make every item 1x1 or half its size, or set a size or weight for a whole category, a food group or a single item.
 - **Lighter or heavier items**: `ItemWeight` multiplies the weight of every item, from 0.1x to 3x.
 - **Your own slowdown**: `Overweight` keeps the game's slowdown (Default), lets you choose where it starts and how strong it is (Custom), or removes it and stops you picking up more at the limit (Hard limit).
 - **Changes apply right away**: in a game, new sizes, weight limits, item sizes and item weights apply as soon as you change them. Outside a game they apply when you load a save.
@@ -65,7 +65,7 @@ See [CONFIG.md](CONFIG.md) for every setting.
 
 Pack Rat writes to `BepInEx\LogOutput.log`. Check it for these lines:
 
-- `Pack Rat 0.3.0 started` when the game starts.
+- `Pack Rat 0.4.0 started` when the game starts.
 - `hooked the world start`, `hooked the item load` and `hooked the overflow drop` right after. A line starting with `could not hook` instead means a game update broke part of the mod; the line says what keeps the game's values.
 - `world start: tables written: ...` and `item load: tables written: ...` each time you load a save, with how many limits, grids, sizes and weights changed.
 - `applied in game: ...` each time you change a setting during a game, with how many items were resized, moved or had no room.

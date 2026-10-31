@@ -29,6 +29,37 @@ public class ItemsTests
         Assert.Equal(new Size(1, 1), settings.SizeOf(1, Furniture, 0, Big));
     }
 
+    [Theory]
+    [InlineData(2, 2, 1, 1)]
+    [InlineData(4, 4, 2, 2)]
+    [InlineData(4, 3, 2, 1)]
+    [InlineData(3, 3, 1, 1)]
+    [InlineData(1, 1, 1, 1)]
+    [InlineData(1, 2, 1, 1)]
+    [InlineData(2, 1, 1, 1)]
+    [InlineData(3, 2, 2, 1)]
+    [InlineData(2, 3, 1, 2)]
+    [InlineData(1, 3, 1, 2)]
+    [InlineData(5, 4, 3, 2)]
+    public void Half_size_halves_each_side_rounded_down_and_a_long_item_stays_long(int w, int h, int halfW, int halfH)
+    {
+        var settings = Parse("""{"allHalf":true}""");
+
+        Assert.Equal(new Size(halfW, halfH), settings.SizeOf(1, Furniture, 0, new Size(w, h)));
+    }
+
+    [Fact]
+    public void Category_and_item_sizes_beat_half_size_and_1x1_beats_it()
+    {
+        var half = Parse("""{"allHalf":true,"cats":{"14":{"size":[3,3]}},"ids":{"10231":{"size":[4,2]}}}""");
+        var both = Parse("""{"allOne":true,"allHalf":true}""");
+
+        Assert.Equal(new Size(3, 3), half.SizeOf(1, Furniture, 0, new Size(4, 4)));
+        Assert.Equal(new Size(4, 2), half.SizeOf(10231, Food, Canned, new Size(4, 4)));
+        Assert.Equal(new Size(2, 2), half.SizeOf(1, Food, Canned, new Size(4, 4)));
+        Assert.Equal(new Size(1, 1), both.SizeOf(1, Furniture, 0, new Size(4, 4)));
+    }
+
     [Fact]
     public void A_food_group_rule_only_reaches_food()
     {
@@ -89,7 +120,7 @@ public class ItemsTests
     [Fact]
     public void The_file_round_trips()
     {
-        var json = """{"allOne":false,"cats":{"14":{"size":[2,2]}},"subs":{"3":{"x":0.5}},"ids":{"10231":{"size":[1,1],"g":200}}}""";
+        var json = """{"allOne":false,"allHalf":true,"cats":{"14":{"size":[2,2]}},"subs":{"3":{"x":0.5}},"ids":{"10231":{"size":[1,1],"g":200}}}""";
 
         Assert.Equal(json, Parse(json).ToJson());
     }

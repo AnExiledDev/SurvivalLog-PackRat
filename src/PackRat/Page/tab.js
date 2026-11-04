@@ -678,22 +678,11 @@
     ui.entry = entry.key;
     ui.level = Math.min(ui.level, entry.rows.length - 1);
 
-    const fit = fitHeights(body);
-
-    patch(body, '<div class="pr" style="--pr-list:' + fit.list + 'px;--pr-ed:' + fit.main + 'px">' + gridsTop() + '<div class="pr-main"><div class="pr-side">' + entryFinder() + '<div class="lr-list pr-list">' + entryList() + '</div></div>'
-      + '<div class="pr-ed">' + entryEditor(entry, fit.preview) + '</div></div>' + resetButton('reset-grids', T('RESET ALL INVENTORIES', '全部恢复默认')) + '</div>');
+    patch(body, '<div class="pr">' + gridsTop() + '<div class="pr-main"><div class="pr-side">' + entryFinder() + '<div class="lr-list pr-list">' + entryList() + '</div></div>'
+      + '<div class="pr-ed">' + entryEditor(entry) + '</div></div>' + resetButton('reset-grids', T('RESET ALL INVENTORIES', '全部恢复默认')) + '</div>');
     keepScroll(body, '.pr-list', ui.ggrp);
     keepScroll(body, '.pr-ed', entry.key);
     bindGrids(body, entry);
-  }
-
-  // The tab fits the window: the list, the editor and the grid preview share what is left below the tab's top.
-  function fitHeights(body) {
-    const top = typeof body.getBoundingClientRect === 'function' ? body.getBoundingClientRect().top : 0;
-    const win = isNum(window.innerHeight) && window.innerHeight > 0 ? window.innerHeight : 1080;
-    const main = Math.max(380, Math.min(720, Math.round(win - Math.max(0, top) - 210)));
-
-    return { main, list: main - 84, preview: Math.max(140, main - 300) };
   }
 
   function categoryName(cat) {
@@ -763,7 +752,7 @@
     return out || '<div class="gv-empty">' + T('Nothing matches.', '没有匹配项。') + '</div>';
   }
 
-  function entryEditor(e, previewH) {
+  function entryEditor(e) {
     const r = e.rows[ui.level];
     const g = gridOf(r.id);
     const own = st.grids.rows[r.id] || {};
@@ -789,7 +778,7 @@
       + '<div class="pr-from"><label>' + T('Source', '来源') + '</label><b>' + from + '</b>' + (g.hasOverride ? '<a data-act="clear-row" data-id="' + r.id + '">' + T('Reset', '重置') + '</a>' : '') + '</div>'
       + '<div class="pr-stat"><b>' + cells + '</b> ' + T('cells', '格') + ' <span class="' + (diff > 0 ? 'up' : diff < 0 ? 'down' : '') + '">' + (diff === 0 ? T('(default)', '（默认）') : (diff > 0 ? '+' : '') + diff + '%') + '</span>'
       + '<div class="pr-fit ' + (fits ? 'ok' : 'warn') + '">' + (fits ? T('Fits on a 1080p screen', '1080p 屏幕可完整显示') : T('May need scrolling at 1080p', '1080p 下可能需要滚动')) + '</div></div></div>'
-      + gridPreview(r, g, previewH);
+      + gridPreview(r, g);
   }
 
   // The category's own size for every inventory in it, and its own multiplier. A blank side follows the multiplier.
@@ -806,8 +795,9 @@
       + (isSet ? '<div class="pr-from"><label>&nbsp;</label><a data-act="clear-cat">' + T('Reset', '重置') + '</a></div>' : '') + '</div>';
   }
 
-  function gridPreview(r, g, boxH) {
-    const box = { w: 600, h: boxH || 300 };
+  // A fixed box, like the Items tab: the editor never needs its own scrollbar and the grid is never shrunk by a guess at the window.
+  function gridPreview(r, g) {
+    const box = { w: 700, h: 240 };
     const cell = Math.max(8, Math.min(36, Math.floor(box.w / Math.max(g.w, g.gameW)), Math.floor(box.h / Math.max(g.h, g.gameH))));
     const load = sampleLoad(ui.load).filter(it => !r.accept || it.cat === r.accept);
     const { placed, left } = pack(g.w, g.h, load);

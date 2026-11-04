@@ -49,14 +49,14 @@
 /* The chips share the row and never push past it: a longer word in another language is cut, not hidden off the side. */
 #slmm .pr-chips span { flex: 1 1 auto; min-width: 0; padding: 6px 4px; text-align: center; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #slmm .pr-chips span i { font-style: normal; font-family: var(--mono); color: var(--tmeta); font-size: .78rem; }
-#slmm .pr .pr-list { height: var(--pr-list, 575px); }
+#slmm .pr .pr-list { height: 575px; }
 #slmm .pr-grp { display: flex; justify-content: space-between; gap: 10px; cursor: pointer; padding: 10px 16px 6px; font: 700 .72rem var(--mono); letter-spacing: 2px; color: var(--tmeta); background: #17130f; border-bottom: 1px solid var(--bd2); text-transform: uppercase; }
 #slmm .pr-grp i { font-style: normal; color: var(--hl); letter-spacing: 0; text-transform: none; }
 #slmm .pr-ab { grid-template-columns: 44px minmax(0, 1fr) auto; min-height: 56px; }
 #slmm .pr-ab img, #slmm .pr-ab .pr-glyph { width: 44px; height: 44px; }
 #slmm .pr-ab .mt { flex-wrap: nowrap; overflow: hidden; white-space: nowrap; }
 #slmm .pr-ab .pr-sub { overflow: hidden; text-overflow: ellipsis; }
-#slmm .pr-ed { min-width: 0; max-height: var(--pr-ed, none); overflow-y: auto; overflow-x: hidden; padding-right: 4px; }
+#slmm .pr-ed { min-width: 0; overflow-y: auto; overflow-x: hidden; padding-right: 4px; }
 #slmm .pr-ed::-webkit-scrollbar, #slmm .pr-tiles::-webkit-scrollbar { width: 6px; }
 #slmm .pr-ed::-webkit-scrollbar-thumb, #slmm .pr-tiles::-webkit-scrollbar-thumb { background: rgba(255,200,58,0.3); }
 #slmm .pr-ed-h { display: flex; align-items: center; gap: 16px; }

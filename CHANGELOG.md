@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.2
+
+- The Inventories tab in Mod Manager no longer has a scrollbar of its own, and the bag preview is shown at full size instead of shrinking to a few pixels on some screens.
+- Made for Survival Log 1.1.20151.
+
 ## 0.4.1
 
 - Pack Rat now changes nothing until you set it up: `CarryWeight` starts at 1, the game's own weight limit, instead of 2. If you already play with the mod, your saved setting stays as it is.

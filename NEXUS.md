@@ -2,7 +2,7 @@ Name: Pack Rat
 Summary: Bigger bags, smaller and lighter items, and more carry weight for your backpack, shopping cart, car and storage. Set grid sizes by category or one by one, weight limits and item sizes in two Mod Manager tabs, and see changes right away in game. Make items lighter and pick how much a heavy load slows you down. Nothing that stops fitting is lost.
 
 Description (BBCode):
-[center][img]https://sldb.core-directive.com/media/save/1-save-safe.png[/img][/center]
+[center][img]https://sldb.core-directive.com/media/save/3-remove-with-care.png[/img][/center]
 
 Survival Log limits how much your bags, storage and vehicles can hold, both in weight and in grid space. Pack Rat lets you raise both, make items smaller or lighter, and choose how much a heavy load slows you down.
 

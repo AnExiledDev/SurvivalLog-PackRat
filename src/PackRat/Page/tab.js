@@ -54,7 +54,7 @@
     lang: 'en',
     loaded: false,
     asked: false,
-    carry: 2,
+    carry: 1,
     itemWeight: 1,
     grids: freshGrids(),
     items: freshItems(),
@@ -484,7 +484,7 @@
     if (!isObj(d) || !window.__slpackratData) return;
 
     build(d);
-    st.carry = isNum(d.carryWeight) ? d.carryWeight : 2;
+    st.carry = isNum(d.carryWeight) ? d.carryWeight : 1;
     st.itemWeight = isNum(d.itemWeight) ? d.itemWeight : 1;
     st.grids = gridsFromFile(d.grids);
     st.items = itemsFromFile(d.itemsFile);

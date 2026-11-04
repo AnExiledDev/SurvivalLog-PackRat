@@ -1,14 +1,17 @@
 Name: Pack Rat
-Summary: Bigger bags, smaller and lighter items, and more carry weight for your backpack, shopping cart, car and storage. Set grid sizes by category or one by one, weight limits and item sizes in two Mod Manager tabs, and see changes right away in game. Make items lighter and pick how much a heavy load slows you down. Nothing that stops fitting is lost.
+Summary: Set how much your backpack, shopping cart, car and storage can hold: grid sizes, weight limits, item sizes and item weights, by category or one by one, in two Mod Manager tabs. Out of the box it changes nothing until you set it up. Choose how much a heavy load slows you down. Changes apply right away, and nothing that stops fitting is lost.
 
 Description (BBCode):
-[center][img]https://sldb.core-directive.com/media/save/3-remove-with-care.png[/img][/center]
+[center][img]https://sldb.core-directive.com/media/save/3-remove-with-care.png[/img]
+[img]https://sldb.core-directive.com/media/notice/configure-first.png[/img][/center]
 
-Survival Log limits how much your bags, storage and vehicles can hold, both in weight and in grid space. Pack Rat lets you raise both, make items smaller or lighter, and choose how much a heavy load slows you down.
+Survival Log limits how much your bags, storage and vehicles can hold, both in weight and in grid space. Pack Rat lets you set both, make items smaller or lighter, and choose how much a heavy load slows you down.
+
+Out of the box Pack Rat changes nothing: every setting starts at the game's own value. Set it up in [url=https://www.nexusmods.com/survivallog/mods/73]Mod Manager[/url] (the easy way) or in the config file.
 
 [size=5]Main features[/size]
 [list]
-[*][b]More carry weight everywhere[/b]: your backpack, the hiking pack, the warehouse bag, the shopping cart, the car and storage with a weight limit all get the new limit. 2 (the default) means twice the game's limit. Any value from 0.1 to 1000 works, and a value below 1 makes the game harder.[/*]
+[*][b]More carry weight everywhere[/b]: your backpack, the hiking pack, the warehouse bag, the shopping cart, the car and storage with a weight limit all get the new limit. 2 means twice the game's limit. Any value from 0.1 to 1000 works, and a value below 1 makes the game harder. It starts at 1, the game's own.[/*]
 [*][b]Bigger bags and storage[/b]: the Inventories tab in Mod Manager makes everything bigger at once, sets the size of a whole category, or sets the columns, rows and weight limit of one bag or storage piece. A preview shows how a full bag looks at the new size.[/*]
 [*][b]Categories of about the same size[/b]: Bags, Vehicles, Small storage, Medium storage, Large storage and Extra large storage. Set a category's columns and rows and every inventory in it gets that size. A size set for one inventory beats its category.[/*]
 [*][b]Changes apply right away[/b]: in a game, new sizes, weight limits, item sizes and item weights apply as soon as you change them.[/*]
@@ -66,11 +69,13 @@ Open source under MIT: [url=https://github.com/AnExiledDev/SurvivalLog-PackRat]g
 [line]
 [size=5]简体中文[/size]
 
-在 Survival Log 里，背包、储物家具和载具能装多少东西，既受负重限制，也受格子数量限制。Pack Rat 让你同时提高这两项，还能让物品更小、更轻，并决定背得太重时减速多少。
+在 Survival Log 里，背包、储物家具和载具能装多少东西，既受负重限制，也受格子数量限制。Pack Rat 让你同时调整这两项，还能让物品更小、更轻，并决定背得太重时减速多少。
+
+默认情况下 Pack Rat 不会改变任何东西：每个设置一开始都是游戏原值。推荐用 [url=https://www.nexusmods.com/survivallog/mods/73]Mod Manager[/url] 来设置，也可以改配置文件。
 
 [size=5]主要功能[/size]
 [list]
-[*][b]处处负重更高[/b]：普通背包、野外登山包、仓管背包、购物车、轿车以及有负重上限的储物家具都会使用新的上限。默认值 2 表示游戏原有上限的两倍。可设为 0.1 到 1000 之间的任意数值，小于 1 则让游戏更有挑战。[/*]
+[*][b]处处负重更高[/b]：普通背包、野外登山包、仓管背包、购物车、轿车以及有负重上限的储物家具都会使用新的上限。2 表示游戏原有上限的两倍。可设为 0.1 到 1000 之间的任意数值，小于 1 则让游戏更有挑战。默认为 1，即游戏原值。[/*]
 [*][b]更大的背包和储物空间[/b]：Mod Manager 的「库存」页面可以一次放大所有库存，按类别设置大小，也可以单独设置某个背包或储物家具的列数、行数和负重上限，还能预览装满后的样子。[/*]
 [*][b]按大小分类[/b]：分为背包、载具、小型储物、中型储物、大型储物和超大型储物六类，同一类的大小相近。设置某一类的列数和行数后，这一类里的所有库存都会变成这个大小。单独设置过的库存优先于所属类别。[/*]
 [*][b]改动立即生效[/b]：在游戏中修改大小、负重上限、物品占格和物品重量，都会马上生效。[/*]

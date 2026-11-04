@@ -108,9 +108,9 @@ internal sealed class Settings
         // The Mod Manager shows these in place of the choice in Chinese; the value written to the file stays English.
         private const string ChoiceZh = "ModManager.ChoiceZh=";
 
-        public static ConfigEntry<double> CarryWeight(ConfigFile config) => config.Bind(Weight, "CarryWeight", 2.0,
-            $"How many times more weight every bag, storage piece and vehicle can hold. 2 means twice the game's limit; 1 is the game's own. Places with no weight limit stay without one. The Inventories tab can set a limit for one bag or piece. From {Core.CarryWeight.MinMultiplier} to {Core.CarryWeight.MaxMultiplier}. Applies right away.\n" +
-            $"所有背包、储物家具和载具的负重上限倍数。2 表示游戏原有负重上限的两倍，1 为游戏原值。原本没有负重上限的地方仍然没有上限。「库存」页面可以为单个背包或家具设置上限。范围 {Core.CarryWeight.MinMultiplier} 到 {Core.CarryWeight.MaxMultiplier}。立即生效。");
+        public static ConfigEntry<double> CarryWeight(ConfigFile config) => config.Bind(Weight, "CarryWeight", Core.CarryWeight.DefaultMultiplier,
+            $"How many times more weight every bag, storage piece and vehicle can hold. 2 means twice the game's limit; 1 (the default) is the game's own. Places with no weight limit stay without one. The Inventories tab can set a limit for one bag or piece. From {Core.CarryWeight.MinMultiplier} to {Core.CarryWeight.MaxMultiplier}. Applies right away.\n" +
+            $"所有背包、储物家具和载具的负重上限倍数。2 表示游戏原有负重上限的两倍，1（默认）为游戏原值。原本没有负重上限的地方仍然没有上限。「库存」页面可以为单个背包或家具设置上限。范围 {Core.CarryWeight.MinMultiplier} 到 {Core.CarryWeight.MaxMultiplier}。立即生效。");
 
         public static ConfigEntry<double> ItemWeight(ConfigFile config) => config.Bind(Weight, "ItemWeight", 1.0, new ConfigDescription(
             $"How many times heavier every item is. 1 is the game's weight; 0.5 makes everything half as heavy. The Items tab can set a different multiplier for a category, or a weight for one item. From {Core.ItemWeight.Min} to {Core.ItemWeight.Max}. Applies right away.\n" +

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.1
+
+- Pack Rat now changes nothing until you set it up: `CarryWeight` starts at 1, the game's own weight limit, instead of 2. If you already play with the mod, your saved setting stays as it is.
+- Made for Survival Log 1.1.20151.
+
 ## 0.4.0
 
 - Big bags now scroll on every bag screen, including the Brewing Barrel, the Cooking Station and the Juicer, and the screen looks right as soon as it opens instead of after a short flash.

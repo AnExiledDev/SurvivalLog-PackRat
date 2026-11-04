@@ -13,6 +13,12 @@ public class CarryWeightTests
     }
 
     [Fact]
+    public void Out_of_the_box_every_limit_is_the_game_own()
+    {
+        Assert.Equal(960_000, CarryWeight.Scaled(960_000, CarryWeight.DefaultMultiplier));
+    }
+
+    [Fact]
     public void A_multiplier_below_one_lowers_it()
     {
         Assert.Equal(480_000, CarryWeight.Scaled(960_000, 0.5));

@@ -6,7 +6,7 @@ Settings live in `BepInEx\config\com.dev.survivallog.packrat.cfg`, created the f
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| `CarryWeight` | `2` | How many times more weight every bag, storage piece and vehicle can hold. From 0.1 to 1000. |
+| `CarryWeight` | `1` | How many times more weight every bag, storage piece and vehicle can hold. From 0.1 to 1000. |
 | `ItemWeight` | `1` | How many times heavier every item is. 0.5 makes everything half as heavy. From 0.1 to 3. |
 | `Overweight` | `Default` | What happens when you carry close to your weight limit. `Default`, `Custom` or `Hard limit`. |
 | `SlowFrom` | `80` | With `Overweight` set to `Custom`: the slowdown starts at this percent of your weight limit. From 10 to 100. |

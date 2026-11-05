@@ -24,6 +24,22 @@ public class TabScriptTests
         Assert.Equal("slmod|modmanager|set|com.dev.survivallog.packrat|Weight|ItemWeight|0.85", page.Text("sent.join('\\n')"));
     }
 
+    /// <summary>The tabs talk to the plugin through Exiled's Toolkit, and the game may run the Toolkit's script before or after tab.js.</summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void The_Items_tab_reaches_the_Mod_Manager_whichever_script_the_game_ran_first(bool isToolkitFirst)
+    {
+        var page = new Page(isToolkitFirst);
+
+        if (!isToolkitFirst) page.LoadToolkit();
+
+        page.Run("window.__slpackrat.setItemWeight(0.5)");
+        page.Run("runTimers()");
+
+        Assert.Equal("slmod|modmanager|set|com.dev.survivallog.packrat|Weight|ItemWeight|0.5", page.Text("sent.join('\\n')"));
+    }
+
     [Fact]
     public void A_held_button_sends_one_change()
     {
@@ -139,12 +155,16 @@ public class TabScriptTests
 
         private readonly Engine _engine = new();
 
-        public Page()
+        /// <summary>The game runs the Toolkit's page API and tab.js in either order; <paramref name="isToolkitFirst"/> false runs only tab.js, see <see cref="LoadToolkit"/>.</summary>
+        public Page(bool isToolkitFirst = true)
         {
             _engine.Execute(Fake);
+            if (isToolkitFirst) LoadToolkit();
             _engine.Execute(Resource("PackRat.data.js"));
             _engine.Execute(Resource("PackRat.tab.js"));
         }
+
+        public void LoadToolkit() => _engine.Execute(Resource("ExiledToolkit.api.js"));
 
         public void Run(string script) => _engine.Execute(script);
 

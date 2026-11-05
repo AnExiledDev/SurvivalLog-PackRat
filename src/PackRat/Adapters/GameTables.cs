@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ExiledToolkit.Game;
 using GameCore.HotUpdate;
 using PackRat.Core;
 using IntList = Il2CppSystem.Collections.Generic.List<int>;

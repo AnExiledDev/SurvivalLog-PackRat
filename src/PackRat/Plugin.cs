@@ -2,6 +2,7 @@ using System;
 using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using ExiledToolkit;
+using ExiledToolkit.Game;
 using HarmonyLib;
 using PackRat.Adapters;
 using PackRat.Core;
@@ -13,9 +14,9 @@ namespace PackRat;
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.packrat";
-    private const string Version = "0.4.2";
+    private const string Version = "0.4.3";
     private const string ToolkitGuid = "com.dev.survivallog.exiledtoolkit";
-    private const string ToolkitVersion = ">=0.11.0";
+    private const string ToolkitVersion = ">=0.19.0";
 
     private Settings? _settings;
 
@@ -27,13 +28,13 @@ public sealed class Plugin : BasePlugin
 
         _settings = settings;
         Log.LogInfo($"Pack Rat {Version} started" + (settings.IsUninstallPrep ? ", Uninstall prep is on: the next load puts the game's own values back" : ""));
-        LoadHooks.Apply(harmony, settings.Current, Write);
-        PageMessages.Apply(harmony, Write);
+        LoadHooks.Apply(new PatchKit(harmony, Write), settings.Current, Write);
         Overflow.Done += AfterLoad;
         LiveApply.Settings = () => _settings;
         LiveApply.Log = Write;
         LiveApply.Moved += AfterChange;
         Ticker.Page = page;
+        Ticker.Inbox = ExiledToolkit.Web.PageInbox.Listen(PageCommand.Prefix);
         Ticker.Tabs = new Tabs(settings, page, Write);
         Ticker.Log = Write;
         AddComponent<Ticker>();

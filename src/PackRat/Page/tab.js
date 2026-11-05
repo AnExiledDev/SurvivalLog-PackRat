@@ -16,6 +16,12 @@
   const SHOWN_STEP = 120;
   const FILES = { grids: 'PackRat.Inventories.json', items: 'PackRat.Items.json' };
 
+  // Exiled's Toolkit's page API (window.ExiledToolkit). The game can run the Toolkit's script after this one, so this
+  // stays null until the Toolkit's ready queue hands it over.
+  let etk = null;
+
+  (window.ExiledToolkitReady = window.ExiledToolkitReady || []).push(api => { etk = api; });
+
   const SIZE_CHOICES = [[1, 1], [1, 2], [2, 1], [2, 2], [2, 3], [3, 2], [3, 3], [4, 3]];
 
   // The same categories as the plugin's (Core/Inventories.cs): inventories of about the same size, so one size suits
@@ -98,12 +104,7 @@
   }
 
   function injectStyle() {
-    if (document.getElementById(STYLE_ID) || typeof window.__slpackratCss !== 'string') return;
-
-    const style = document.createElement('style');
-    style.id = STYLE_ID;
-    style.textContent = window.__slpackratCss;
-    document.head.appendChild(style);
+    if (etk && typeof window.__slpackratCss === 'string') etk.addStyle(document, STYLE_ID, window.__slpackratCss);
   }
 
   // ===== Game data =====
@@ -434,7 +435,7 @@
   // ===== Talking to the plugin =====
 
   function send(msg) {
-    try { window.vuplex.postMessage(PREFIX + msg); } catch (e) { /* the plugin is not listening; nothing to do */ }
+    if (etk) etk.send(PREFIX, msg);
   }
 
   function askForData() {
@@ -465,7 +466,7 @@
 
   // ItemWeight is an ordinary setting, so the Mod Manager writes it: then its own Mods screen shows the new value too.
   function sendModManager(verb, parts) {
-    try { window.vuplex.postMessage(MM_PREFIX + [verb].concat(parts.map(encodeURIComponent)).join('|')); } catch (e) { /* not in the game */ }
+    if (etk) etk.send(MM_PREFIX, [verb].concat(parts.map(encodeURIComponent)).join('|'));
   }
 
   function flushAll() {

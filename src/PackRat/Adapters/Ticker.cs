@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using ExiledToolkit.Web;
+using PackRat.Core;
 using UnityEngine;
 
 namespace PackRat.Adapters;
@@ -14,6 +16,7 @@ public sealed class Ticker : MonoBehaviour
     private const int MaxReportedFailures = 20;
 
     internal static WebPage? Page;
+    internal static PageMailbox? Inbox;
     internal static Tabs? Tabs;
     internal static Action<string> Log = _ => { };
     private static readonly HashSet<string> ReportedFailures = new();
@@ -30,7 +33,7 @@ public sealed class Ticker : MonoBehaviour
 
             Page?.KeepInstalled(now);
 
-            while (PageMessages.TryTake(out var command)) Tabs?.Handle(command);
+            while (Inbox != null && Inbox.TryTake(out var message)) Tabs?.Handle(PageCommand.Parse(message));
 
             Overflow.Tick(now);
             LiveApply.Tick(now);

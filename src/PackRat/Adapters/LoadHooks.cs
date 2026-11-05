@@ -1,6 +1,6 @@
 using System;
+using ExiledToolkit.Game;
 using GameCore.HotUpdate.Battle.Logic;
-using HarmonyLib;
 using PackRat.Core;
 
 namespace PackRat.Adapters;
@@ -16,34 +16,17 @@ internal static class LoadHooks
     private static Func<TableSettings> _settings = () => TableSettings.GameDefaults;
     private static Action<string> _log = _ => { };
 
-    public static void Apply(Harmony harmony, Func<TableSettings> settings, Action<string> log)
+    public static void Apply(PatchKit hooks, Func<TableSettings> settings, Action<string> log)
     {
         _settings = settings;
         _log = log;
 
-        Patch(harmony, typeof(BattleLogicWorld), nameof(BattleLogicWorld.Initialize), nameof(BeforeWorldStart), null, null,
-            "the world start", "sizes and weights keep the game's values until the items load");
-        Patch(harmony, typeof(ItemManager), nameof(ItemManager.LoadItemsFromSave), nameof(BeforeItemsLoad), nameof(AfterItemsLoad), nameof(ItemsLoadEnded),
-            "the item load", "items that no longer fit go on the floor the game's way");
-        Patch(harmony, typeof(DropItemManager), nameof(DropItemManager.TryDropOverflowItemData), nameof(BeforeOverflowDrop), null, null,
-            "the overflow drop", "items that no longer fit go on the floor the game's way");
-    }
-
-    private static void Patch(Harmony harmony, Type type, string method, string prefix, string? postfix, string? finalizer, string what, string otherwise)
-    {
-        try
-        {
-            harmony.Patch(
-                AccessTools.Method(type, method),
-                prefix: new HarmonyMethod(typeof(LoadHooks), prefix),
-                postfix: postfix == null ? null : new HarmonyMethod(typeof(LoadHooks), postfix),
-                finalizer: finalizer == null ? null : new HarmonyMethod(typeof(LoadHooks), finalizer));
-            _log("hooked " + what);
-        }
-        catch (Exception ex)
-        {
-            _log($"could not hook {type.Name}.{method}, {otherwise}: {ex.Message}");
-        }
+        hooks.Patch(typeof(LoadHooks), typeof(BattleLogicWorld), nameof(BattleLogicWorld.Initialize), prefix: nameof(BeforeWorldStart),
+            done: "hooked the world start", consequence: "sizes and weights keep the game's values until the items load");
+        hooks.Patch(typeof(LoadHooks), typeof(ItemManager), nameof(ItemManager.LoadItemsFromSave), prefix: nameof(BeforeItemsLoad), postfix: nameof(AfterItemsLoad), finalizer: nameof(ItemsLoadEnded),
+            done: "hooked the item load", consequence: "items that no longer fit go on the floor the game's way");
+        hooks.Patch(typeof(LoadHooks), typeof(DropItemManager), nameof(DropItemManager.TryDropOverflowItemData), prefix: nameof(BeforeOverflowDrop),
+            done: "hooked the overflow drop", consequence: "items that no longer fit go on the floor the game's way");
     }
 
     private static void BeforeWorldStart() => WriteTables("world start");

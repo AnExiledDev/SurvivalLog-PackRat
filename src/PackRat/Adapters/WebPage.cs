@@ -1,75 +1,43 @@
 using System;
 using System.IO;
-using GameCore.HotUpdate.ReduxUI;
+using ExiledToolkit.Web;
 using PackRat.Core;
+using ToolkitPage = ExiledToolkit.Web.WebPage;
 
 namespace PackRat.Adapters;
 
 /// <summary>
 /// The mod's half in the game's web UI: tab.js and its styles, and bags.js (scrolling grids on the game's inventory
 /// screens), run in the root document the Mod Manager and every screen sit in. The web view can reload at any time and
-/// lose the scripts, so they are checked for every couple of seconds and sent again when the page says they are
-/// missing. The item and inventory names (data.js, about half a megabyte) are sent only when a tab asks for them.
+/// lose the scripts, so Exiled's Toolkit checks for them every couple of seconds and they are sent again when the page
+/// says they are missing. The item and inventory names (data.js, about half a megabyte) are sent only when a tab asks
+/// for them.
 /// </summary>
 internal sealed class WebPage
 {
-    private const float CheckSeconds = 2f;
-    private const string NoScriptReply = "window.vuplex&&window.vuplex.postMessage('" + PageCommand.Prefix + "noscript')";
-
-    private readonly Action<string> _log;
-    private string? _script;
+    private readonly ToolkitPage _page;
     private string? _bags;
+    private string? _css;
     private string? _data;
-    private float _nextCheckAt;
-    private bool _hasReportedRunFailure;
 
     public WebPage(Action<string> log)
     {
-        _log = log;
+        _page = new ToolkitPage(typeof(WebPage).Assembly, "PackRat.tab.js", "window.__slpackrat", PageCommand.Prefix + "noscript", log) { Name = "tab" };
     }
 
-    public void KeepInstalled(float now)
-    {
-        if (now < _nextCheckAt) return;
+    public void KeepInstalled(double now) => _page.KeepInstalled(now);
 
-        _nextCheckAt = now + CheckSeconds;
-        Run("window.__slpackrat||" + NoScriptReply);
-    }
-
+    /// <summary>bags.js first, then the styles tab.js reads as it starts, then tab.js itself.</summary>
     public void Install()
     {
-        _script ??= "window.__slpackratCss=" + JsText.Literal(Resource("PackRat.tab.css")) + ";\n" + Resource("PackRat.tab.js");
-
-        Run(_bags ??= Resource("PackRat.bags.js"));
-
-        if (Run(_script)) _log("tab script sent to the web UI");
+        _page.Run(_bags ??= Resource("PackRat.bags.js"));
+        _page.Run(_css ??= "window.__slpackratCss=" + JsText.Literal(Resource("PackRat.tab.css")) + ";");
+        _page.Install();
     }
 
-    public void SendNames() => Run(_data ??= Resource("PackRat.data.js"));
+    public void SendNames() => _page.Run(_data ??= Resource("PackRat.data.js"));
 
-    public void Call(string javaScript) => Run(javaScript);
-
-    private bool Run(string javaScript)
-    {
-        var webView = GameSingleton.Existing<ReduxUISystem>()?.GetWebUILayer()?.canvasWebViewPrefab?.WebView;
-
-        if (webView == null) return false;
-
-        try
-        {
-            webView.ExecuteJavaScript(javaScript, null);
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            if (!_hasReportedRunFailure) _log("could not run script in the web UI (reported once): " + ex.Message);
-
-            _hasReportedRunFailure = true;
-
-            return false;
-        }
-    }
+    public void Call(string javaScript) => _page.Run(javaScript);
 
     private static string Resource(string name)
     {

@@ -38,9 +38,9 @@ Pack Rat writes nothing into your save and does not edit game files. Before you 
 
 [size=5]Requirements[/size]
 [list]
-[*]Survival Log 1.1.20151. A game update can break it until the mod is updated.[/*]
+[*]Survival Log 1.1.20719. A game update can break it until the mod is updated.[/*]
 [*][url=https://www.nexusmods.com/survivallog/mods/12]BepInEx for Survival Log[/url]. Install it first.[/*]
-[*][url=https://www.nexusmods.com/survivallog/mods/61]Exiled's Toolkit[/url] 0.11.0 or newer. Pack Rat uses it to show its messages.[/*]
+[*][url=https://www.nexusmods.com/survivallog/mods/61]Exiled's Toolkit[/url] 0.19.0 or newer. Pack Rat does not load without it. It shows Pack Rat's messages and connects the Inventories and Items tabs to the mod.[/*]
 [*]Optional: [url=https://www.nexusmods.com/survivallog/mods/73]Mod Manager[/url], for the Inventories and Items tabs and the Mods screen. Without it, change the settings in the config file.[/*]
 [/list]
 
@@ -101,9 +101,9 @@ Pack Rat 不会往存档里写入任何内容，也不会修改游戏文件。�
 
 [size=5]前置要求[/size]
 [list]
-[*]Survival Log 1.1.20151。游戏更新后模组可能暂时失效，直到模组更新为止。[/*]
+[*]Survival Log 1.1.20719。游戏更新后模组可能暂时失效，直到模组更新为止。[/*]
 [*][url=https://www.nexusmods.com/survivallog/mods/12]BepInEx for Survival Log[/url]，请先安装。[/*]
-[*][url=https://www.nexusmods.com/survivallog/mods/61]Exiled's Toolkit[/url] 0.11.0 或更新版本，Pack Rat 用它显示提示。[/*]
+[*][url=https://www.nexusmods.com/survivallog/mods/61]Exiled's Toolkit[/url] 0.19.0 或更新版本。没有它本模组不会加载。Pack Rat 用它显示提示，并让「库存」「物品」页面与模组相连。[/*]
 [*]可选：[url=https://www.nexusmods.com/survivallog/mods/73]Mod Manager[/url]，用于「库存」「物品」页面和「模组」界面。没装的话，请在配置文件里修改设置。[/*]
 [/list]
 

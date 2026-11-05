@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.3
+
+- Now uses Exiled's Toolkit for its shared parts, so it needs Exiled's Toolkit 0.19.0 or newer.
+- Made for Survival Log 1.1.20719.
+
 ## 0.4.2
 
 - The Inventories tab in Mod Manager no longer has a scrollbar of its own, and the bag preview is shown at full size instead of shrinking to a few pixels on some screens.

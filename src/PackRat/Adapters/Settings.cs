@@ -25,6 +25,7 @@ internal sealed class Settings
         SlowFromEntry = Bind.SlowFrom(config);
         SlowByEntry = Bind.SlowBy(config);
         UninstallPrepEntry = Bind.UninstallPrep(config);
+        ScrollBarsEntry = Bind.ScrollBars(config);
 
         CarryWeightEntry.SettingChanged += Changed;
         ItemWeightEntry.SettingChanged += Changed;
@@ -43,6 +44,7 @@ internal sealed class Settings
     public ConfigEntry<int> SlowFromEntry { get; }
     public ConfigEntry<int> SlowByEntry { get; }
     public ConfigEntry<bool> UninstallPrepEntry { get; }
+    public ConfigEntry<bool> ScrollBarsEntry { get; }
 
     public bool IsUninstallPrep => UninstallPrepEntry.Value;
 
@@ -102,6 +104,7 @@ internal sealed class Settings
     {
         private const string Weight = "Weight";
         private const string Uninstall = "Uninstall";
+        private const string Screens = "Screens";
         private const string ShowWhenCustom = "ModManager.ShowWhen=Overweight=" + Core.Overweight.CustomName;
         private const string Advanced = "ModManager.Advanced";
 
@@ -131,6 +134,10 @@ internal sealed class Settings
             $"With Overweight set to Custom: how much slower you move once the slowdown starts, in percent. 0 means no slowdown. From {Core.Overweight.MinSlowBy} to {Core.Overweight.MaxSlowBy}.\n" +
             $"当「Overweight」为「自定义」时：开始减速后移动速度降低的百分比。0 表示不减速。范围 {Core.Overweight.MinSlowBy} 到 {Core.Overweight.MaxSlowBy}。",
             new AcceptableValueRange<int>(Core.Overweight.MinSlowBy, Core.Overweight.MaxSlowBy), ShowWhenCustom, Advanced));
+
+        public static ConfigEntry<bool> ScrollBars(ConfigFile config) => config.Bind(Screens, "ScrollBars", true,
+            "A bag or storage too big for the screen gets a scrollbar, so the rest of the screen keeps its size. Turn it off and the game shrinks the whole screen until it fits, as it does without Pack Rat; a very big bag can then get too small to use. Applies right away.\n" +
+            "放不下屏幕的背包或储物会显示滚动条，界面的其他部分保持原大小。关闭后由游戏把整个界面缩小到能放下为止，和没有本模组时一样；很大的背包可能会缩得太小而难以使用。立即生效。");
 
         public static ConfigEntry<bool> UninstallPrep(ConfigFile config) => config.Bind(Uninstall, "UninstallPrep", false,
             "Turn this on before you remove Pack Rat. The next time you load a save, bag sizes, item sizes, weights and the slowdown all go back to the game's own, and anything that no longer fits goes into the shopping bags in the living room. When the message says Pack Rat is safe to remove, save the game, then remove the mod.\n" +

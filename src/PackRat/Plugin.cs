@@ -14,7 +14,7 @@ namespace PackRat;
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.packrat";
-    private const string Version = "0.4.3";
+    private const string Version = "0.5.0";
     private const string ToolkitGuid = "com.dev.survivallog.exiledtoolkit";
     private const string ToolkitVersion = ">=0.19.0";
 
@@ -33,6 +33,7 @@ public sealed class Plugin : BasePlugin
         LiveApply.Settings = () => _settings;
         LiveApply.Log = Write;
         LiveApply.Moved += AfterChange;
+        LiveSettings.Watch(settings.ScrollBarsEntry, page.SetScrollBars);
         Ticker.Page = page;
         Ticker.Inbox = ExiledToolkit.Web.PageInbox.Listen(PageCommand.Prefix);
         Ticker.Tabs = new Tabs(settings, page, Write);

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0
+
+- New `ScrollBars` setting, on by default. Turn it off and big bags no longer get a scrollbar: the game shrinks the whole screen until it fits, as it does without Pack Rat. A very big bag can then get too small to use. It applies right away, even on a screen that is already open.
+- Made for Survival Log 1.1.20719.
+
 ## 0.4.3
 
 - Now uses Exiled's Toolkit for its shared parts, so it needs Exiled's Toolkit 0.19.0 or newer.

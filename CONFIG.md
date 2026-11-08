@@ -22,6 +22,14 @@ Very large `CarryWeight` values are capped so the game's numbers stay valid. At 
 - `Custom`: you set where the slowdown starts (`SlowFrom`) and how strong it is (`SlowBy`). On the Mods screen these two show only when `Custom` is picked, under advanced settings.
 - `Hard limit`: no slowdown at all, but you can't pick up more once you reach the limit.
 
+## Screens
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `ScrollBars` | `true` | A bag or storage too big for the screen gets a scrollbar, so the rest of the screen keeps its size. Off: the game shrinks the whole screen until it fits, as it does without Pack Rat. |
+
+With `ScrollBars` off, a very big bag can get too small to use, and on some screens the rest of the screen shrinks with it. It applies right away, even on a screen that is already open.
+
 ## Uninstall
 
 | Setting | Default | What it does |

@@ -11,7 +11,7 @@ namespace PackRat.Adapters;
 /// screens), run in the root document the Mod Manager and every screen sit in. The web view can reload at any time and
 /// lose the scripts, so Exiled's Toolkit checks for them every couple of seconds and they are sent again when the page
 /// says they are missing. The item and inventory names (data.js, about half a megabyte) are sent only when a tab asks
-/// for them.
+/// for them. The ScrollBars setting is sent after bags.js each time.
 /// </summary>
 internal sealed class WebPage
 {
@@ -19,6 +19,7 @@ internal sealed class WebPage
     private string? _bags;
     private string? _css;
     private string? _data;
+    private bool _scrollBars = true;
 
     public WebPage(Action<string> log)
     {
@@ -31,8 +32,17 @@ internal sealed class WebPage
     public void Install()
     {
         _page.Run(_bags ??= Resource("PackRat.bags.js"));
+        _page.Run(BagScroll.Script(_scrollBars));
         _page.Run(_css ??= "window.__slpackratCss=" + JsText.Literal(Resource("PackRat.tab.css")) + ";");
         _page.Install();
+    }
+
+    /// <summary>The ScrollBars setting: on, big grids scroll; off, the game shrinks the screen to fit.</summary>
+    public void SetScrollBars(bool on)
+    {
+        _scrollBars = on;
+
+        if (_page.HasWebView) _page.Run(BagScroll.Script(on));
     }
 
     public void SendNames() => _page.Run(_data ??= Resource("PackRat.data.js"));

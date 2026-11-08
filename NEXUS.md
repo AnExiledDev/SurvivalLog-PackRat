@@ -19,7 +19,7 @@ Out of the box Pack Rat changes nothing: every setting starts at the game's own 
 [*][b]Lighter or heavier items[/b]: one setting multiplies the weight of every item, from 0.1x to 3x.[/*]
 [*][b]Your own slowdown[/b]: keep the game's slowdown, choose where it starts and how strong it is, or remove it and stop picking things up at the limit instead.[/*]
 [*][b]Nothing is lost[/b]: when a bag gets smaller or an item gets bigger, items that no longer fit move to a free spot in the same bag. If the bag is full, they go into the shopping bags in the living room, or onto the floor if those are full too. A message tells you how many moved.[/*]
-[*][b]Big bags scroll[/b]: a bag too tall or wide for the screen gets a scrollbar on the bag screen, so the rest of the screen keeps its size.[/*]
+[*][b]Big bags scroll[/b]: a bag too tall or wide for the screen gets a scrollbar on the bag screen, so the rest of the screen keeps its size. Turn [font=Courier New]ScrollBars[/font] off to let the game shrink the whole screen to fit instead.[/*]
 [*][b]Talents still count[/b]: talents that raise your carry weight add on top of the new limit.[/*]
 [/list]
 Pack Rat writes nothing into your save and does not edit game files. Before you remove it, turn on [font=Courier New]UninstallPrep[/font] and load your save: everything goes back to the game's sizes and weights, and a message says when it is safe to remove.
@@ -83,7 +83,7 @@ Open source under MIT: [url=https://github.com/AnExiledDev/SurvivalLog-PackRat]g
 [*][b]物品轻重随你定[/b]：一个设置就能把所有物品的重量调为 0.1 到 3 倍。[/*]
 [*][b]自定义减速[/b]：保持游戏原有的减速，自己设定从哪里开始减速以及减速多少，或者取消减速、改为到达上限后无法再拾取。[/*]
 [*][b]东西不会丢[/b]：背包变小或物品变大后，放不下的物品会挪到同一个背包里的空位；背包满了就装进客厅的购物袋，购物袋也满了才放到地上，并有提示告诉你移动了多少件。[/*]
-[*][b]大背包可以滚动[/b]：太高或太宽的背包在背包界面会出现滚动条，界面其他部分不会跟着缩小。[/*]
+[*][b]大背包可以滚动[/b]：太高或太宽的背包在背包界面会出现滚动条，界面其他部分不会跟着缩小。关闭 [font=Courier New]ScrollBars[/font] 则由游戏把整个界面缩小到能放下为止。[/*]
 [*][b]天赋照样生效[/b]：提升负重的天赋会在新上限的基础上继续叠加。[/*]
 [/list]
 Pack Rat 不会往存档里写入任何内容，也不会修改游戏文件。移除之前，先打开 [font=Courier New]UninstallPrep[/font] 并读取存档：所有大小和重量都会恢复为游戏原值，提示可以安全移除后再移除。

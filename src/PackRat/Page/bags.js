@@ -1,9 +1,16 @@
 // Scrolling grids on the game's inventory screens. A grid too big for the window gets a scrollbar instead of the game
 // shrinking the whole screen until it fits. Runs in Root.html, where every screen is a frame of the same origin; a
 // frame is set up just before it is shown (Root's notifyPageReady), so it never shows unfitted.
+// With the ScrollBars setting off (window.__slprBagsScroll(false)) every screen is left to the game, which shrinks a
+// screen too big for the window, and a screen already set up gives its grids back.
 (function () {
   if (typeof document.getElementsByTagName !== 'function' || window.__slprBags) return;
   window.__slprBags = true;
+
+  let scrollOn = true;
+  // The screens set up, and those shown while scrolling was off (set up once it is back on).
+  let screens = [];
+  let waiting = [];
 
   // Some screens place their parts from the grid's rows rather than from what shows. While a screen is cut to fit
   // the window, the page carries data-slpr-own and its "css" turns those placements off, and its "follow" places
@@ -190,8 +197,35 @@
 
     doc.__slprBags = true;
 
-    try { setup(doc, cfg); } catch (e) { console.warn('[PackRat] bag scroll: ' + e); }
+    if (scrollOn) start(doc, cfg); else waiting.push({ doc, cfg });
   }
+
+  function start(doc, cfg) {
+    try { screens.push(setup(doc, cfg)); } catch (e) { console.warn('[PackRat] bag scroll: ' + e); }
+  }
+
+  // A screen whose frame is gone has no window any more.
+  function alive(doc) { return !!(doc.defaultView && doc.body); }
+
+  window.__slprBagsScroll = function (on) {
+    on = !!on;
+
+    if (on === scrollOn) return;
+
+    scrollOn = on;
+    screens = screens.filter(c => alive(c.doc));
+
+    for (let i = 0; i < screens.length; i++) {
+      try { if (on) screens[i].resume(); else screens[i].stop(); } catch (e) { console.warn('[PackRat] bag scroll: ' + e); }
+    }
+
+    if (!on) return;
+
+    const shown = waiting;
+    waiting = [];
+
+    for (let i = 0; i < shown.length; i++) if (alive(shown[i].doc)) start(shown[i].doc, shown[i].cfg);
+  };
 
   function frameOf(win) {
     const frames = document.getElementsByTagName('iframe');
@@ -239,6 +273,7 @@
     let shown = states;
     const ptr = { x: 0, y: 0, held: false, dragging: false, sx: 0, sy: 0, onBox: false };
     let fitting = false;
+    let off = false;
     let own = false;
     let lastSig = '';
     let lastKey = '';
@@ -308,20 +343,33 @@
       return box;
     }
 
+    // The box gives its grid back as the game made it: no cut, and a box of our own is taken out.
+    function release(s) {
+      ro.unobserve(s.box);
+      ro.unobserve(s.grid);
+      setCap(s, 0, 0);
+      setMin(s, 0);
+
+      if (cfg.boxes) {
+        s.box.removeAttribute('data-slpr');
+      } else if (s.grid.parentElement === s.box && s.box.parentElement) {
+        s.box.parentElement.insertBefore(s.grid, s.box);
+        s.box.remove();
+      } else if (!s.box.firstElementChild) {
+        s.box.remove();
+      }
+    }
+
     function scan() {
+      if (off) return;
+
       for (let i = states.length - 1; i >= 0; i--) {
         const s = states[i];
 
         if (s.grid.isConnected && s.grid.parentElement === s.box) continue;
 
         states.splice(i, 1);
-        ro.unobserve(s.box);
-        ro.unobserve(s.grid);
-        setCap(s, 0, 0);
-        setMin(s, 0);
-
-        if (cfg.boxes) s.box.removeAttribute('data-slpr');
-        else if (!s.box.firstElementChild) s.box.remove();
+        release(s);
       }
 
       const grids = findGrids();
@@ -597,7 +645,7 @@
     }
 
     function fit() {
-      if (fitting) return;
+      if (fitting || off) return;
 
       const iw = win.innerWidth, ih = win.innerHeight;
 
@@ -673,7 +721,7 @@
     }
 
     function fitSoon() {
-      if (fitRaf || fitting) return;
+      if (fitRaf || fitting || off) return;
 
       fitRaf = win.requestAnimationFrame(() => {
         fitRaf = 0;
@@ -708,7 +756,7 @@
     let sigIds = 0;
 
     function onMutate() {
-      if (fitting) return;
+      if (fitting || off) return;
 
       const now = sig();
 
@@ -948,7 +996,41 @@
 
     win.addEventListener('resize', () => { if (!fitting) { lastSig = ''; onMutate(); } });
 
+    // ----- The ScrollBars setting -----
+
+    function stop() {
+      if (off) return;
+
+      off = true;
+      ptr.dragging = false;
+
+      for (let i = states.length - 1; i >= 0; i--) release(states[i]);
+
+      states.length = 0;
+      shown = states;
+      capRacks();
+      setOwn(false);
+      style.disabled = true;
+      lastKey = '';
+      lastSig = '';
+      // The game works out its own shrink again, now for the grids at their full size.
+      win.dispatchEvent(new win.Event('resize'));
+    }
+
+    function resume() {
+      if (!off) return;
+
+      off = false;
+      style.disabled = false;
+      lastKey = '';
+      lastSig = '';
+      scan();
+      fit();
+    }
+
     scan();
     fit();
+
+    return { doc, stop, resume };
   }
 })();

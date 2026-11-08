@@ -136,7 +136,7 @@ internal sealed class Settings
             new AcceptableValueRange<int>(Core.Overweight.MinSlowBy, Core.Overweight.MaxSlowBy), ShowWhenCustom, Advanced));
 
         public static ConfigEntry<bool> ScrollBars(ConfigFile config) => config.Bind(Screens, "ScrollBars", true,
-            "A bag or storage too big for the screen gets a scrollbar, so the rest of the screen keeps its size. Turn it off and the game shrinks the whole screen until it fits, as it does without Pack Rat; a very big bag can then get too small to use. Applies right away.\n" +
+            "A bag or storage too big for the screen gets a scrollbar, so the rest of the screen keeps its size. Turn it off and the game shrinks the whole screen until it fits, as it does without Pack Rat. A very big bag can then get too small to use. Applies right away.\n" +
             "放不下屏幕的背包或储物会显示滚动条，界面的其他部分保持原大小。关闭后由游戏把整个界面缩小到能放下为止，和没有本模组时一样；很大的背包可能会缩得太小而难以使用。立即生效。");
 
         public static ConfigEntry<bool> UninstallPrep(ConfigFile config) => config.Bind(Uninstall, "UninstallPrep", false,

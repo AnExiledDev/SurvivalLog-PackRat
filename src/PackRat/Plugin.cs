@@ -27,7 +27,7 @@ public sealed class Plugin : BasePlugin
         var page = new WebPage(Write);
 
         _settings = settings;
-        Log.LogInfo($"Pack Rat {Version} started" + (settings.IsUninstallPrep ? ", Uninstall prep is on: the next load puts the game's own values back" : ""));
+        Log.LogInfo($"Pack Rat {Version} started" + (settings.IsUninstallPrep ? ", Uninstall prep is on: the next load puts the game's values back" : ""));
         LoadHooks.Apply(new PatchKit(harmony, Write), settings.Current, Write);
         Overflow.Done += AfterLoad;
         LiveApply.Settings = () => _settings;

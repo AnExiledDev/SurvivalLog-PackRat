@@ -48,7 +48,7 @@ internal sealed class Settings
 
     public bool IsUninstallPrep => UninstallPrepEntry.Value;
 
-    /// <summary>What goes into the game's tables at this load. Uninstall prep puts the game's own values back.</summary>
+    /// <summary>What goes into the game's tables at this load. Uninstall prep puts the game's values back.</summary>
     public TableSettings Current()
     {
         if (IsUninstallPrep) return TableSettings.GameDefaults;
@@ -112,7 +112,7 @@ internal sealed class Settings
         private const string ChoiceZh = "ModManager.ChoiceZh=";
 
         public static ConfigEntry<double> CarryWeight(ConfigFile config) => config.Bind(Weight, "CarryWeight", Core.CarryWeight.DefaultMultiplier,
-            $"How many times more weight every bag, storage piece and vehicle can hold. 2 means twice the game's limit; 1 (the default) is the game's own. Places with no weight limit stay without one. The Inventories tab can set a limit for one bag or piece. From {Core.CarryWeight.MinMultiplier} to {Core.CarryWeight.MaxMultiplier}. Applies right away.\n" +
+            $"How many times more weight every bag, storage piece and vehicle can hold. 2 means twice the game's limit; 1 (the default) is the game's. Places with no weight limit stay without one. The Inventories tab can set a limit for one bag or piece. From {Core.CarryWeight.MinMultiplier} to {Core.CarryWeight.MaxMultiplier}. Applies right away.\n" +
             $"所有背包、储物家具和载具的负重上限倍数。2 表示游戏原有负重上限的两倍，1（默认）为游戏原值。原本没有负重上限的地方仍然没有上限。「库存」页面可以为单个背包或家具设置上限。范围 {Core.CarryWeight.MinMultiplier} 到 {Core.CarryWeight.MaxMultiplier}。立即生效。");
 
         public static ConfigEntry<double> ItemWeight(ConfigFile config) => config.Bind(Weight, "ItemWeight", 1.0, new ConfigDescription(
@@ -140,7 +140,7 @@ internal sealed class Settings
             "放不下屏幕的背包或储物会显示滚动条，界面的其他部分保持原大小。关闭后由游戏把整个界面缩小到能放下为止，和没有本模组时一样；很大的背包可能会缩得太小而难以使用。立即生效。");
 
         public static ConfigEntry<bool> UninstallPrep(ConfigFile config) => config.Bind(Uninstall, "UninstallPrep", false,
-            "Turn this on before you remove Pack Rat. The next time you load a save, bag sizes, item sizes, weights and the slowdown all go back to the game's own, and anything that no longer fits goes into the shopping bags in the living room. When the message says Pack Rat is safe to remove, save the game, then remove the mod.\n" +
+            "Turn this on before you remove Pack Rat. The next time you load a save, bag sizes, item sizes, weights and the slowdown all go back to the game's, and anything that no longer fits goes into the shopping bags in the living room. When the message says Pack Rat is safe to remove, save the game, then remove the mod.\n" +
             "移除背包达人之前请先打开此项。下次读取存档时，背包大小、物品占格、重量和减速效果都会恢复为游戏原值，放不下的物品会装进客厅的购物袋。看到可以安全移除的提示后，先存档，再移除本模组。");
     }
 }

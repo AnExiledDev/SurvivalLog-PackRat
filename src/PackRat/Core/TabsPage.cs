@@ -13,7 +13,7 @@ public static class TabsPage
     public const string ItemsKind = "items";
 
     /// <summary>
-    /// Hands the tabs the game's own sizes and limits ([w, h, grams] per row) and each row's category, the two settings they show, both files
+    /// Hands the tabs the game's sizes and limits ([w, h, grams] per row) and each row's category, the two settings they show, both files
     /// as they were read, and what went wrong reading them. A file that could not be read is sent as null, so the tab
     /// starts from the game's values.
     /// </summary>

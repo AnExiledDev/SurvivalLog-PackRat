@@ -12,7 +12,7 @@ Settings live in `BepInEx\config\com.dev.survivallog.packrat.cfg`, created the f
 | `SlowFrom` | `80` | With `Overweight` set to `Custom`: the slowdown starts at this percent of your weight limit. From 10 to 100. |
 | `SlowBy` | `40` | With `Overweight` set to `Custom`: how much slower you move once the slowdown starts, in percent. From 0 to 90. |
 
-`CarryWeight` at `1` is the game's own carry weight. A value below 1 makes everything hold less. Places the game gives no weight limit keep no limit. Talents that raise your carry weight still add on top. A weight limit set for one bag on the Inventories tab replaces `CarryWeight` for that bag.
+`CarryWeight` at `1` is the game's carry weight. A value below 1 makes everything hold less. Places the game gives no weight limit keep no limit. Talents that raise your carry weight still add on top. A weight limit set for one bag on the Inventories tab replaces `CarryWeight` for that bag.
 
 Very large `CarryWeight` values are capped so the game's numbers stay valid. At 1000x the backpack gets the full 1000x, but the hiking pack, warehouse bag, shopping cart and car stop at the cap (about 833x, 801x, 556x and 208x).
 
@@ -34,7 +34,7 @@ With `ScrollBars` off, a very big bag can get too small to use, and on some scre
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| `UninstallPrep` | `false` | Turn it on before you remove Pack Rat. The next save you load gets the game's own sizes and weights back. |
+| `UninstallPrep` | `false` | Turn it on before you remove Pack Rat. The next save you load gets the game's sizes and weights back. |
 
 With `UninstallPrep` on, items that no longer fit in a smaller bag go into the shopping bags in the living room, or onto the floor if those are full. A message then says Pack Rat is safe to remove. Save the game, quit, and delete the mod.
 

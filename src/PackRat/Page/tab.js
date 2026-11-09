@@ -329,7 +329,7 @@
     return out;
   }
 
-  // First fit, biggest items first. The game's own packing may lay things out differently.
+  // First fit, biggest items first. The game's packing may lay things out differently.
   function pack(w, h, list) {
     const used = Array.from({ length: h }, () => new Array(w).fill(false));
     const placed = [];

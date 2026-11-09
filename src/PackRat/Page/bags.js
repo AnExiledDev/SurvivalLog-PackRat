@@ -14,7 +14,7 @@
 
   // Some screens place their parts from the grid's rows rather than from what shows. While a screen is cut to fit
   // the window, the page carries data-slpr-own and its "css" turns those placements off, and its "follow" places
-  // the parts from the cut grids instead. Outside that, the game's own layout stands untouched.
+  // the parts from the cut grids instead. Outside that, the game's layout stands untouched.
   function setVar(el, name, px) {
     const v = px == null ? '' : px + 'px';
 

@@ -7,11 +7,11 @@ Description (BBCode):
 
 Survival Log limits how much your bags, storage and vehicles can hold, both in weight and in grid space. Pack Rat lets you set both, make items smaller or lighter, and choose how much a heavy load slows you down.
 
-Out of the box Pack Rat changes nothing: every setting starts at the game's own value. Set it up in [url=https://www.nexusmods.com/survivallog/mods/73]Mod Manager[/url] (the easy way) or in the config file.
+Out of the box Pack Rat changes nothing: every setting starts at the game's value. Set it up in [url=https://www.nexusmods.com/survivallog/mods/73]Mod Manager[/url] (the easy way) or in the config file.
 
 [size=5]Main features[/size]
 [list]
-[*][b]More carry weight everywhere[/b]: your backpack, the hiking pack, the warehouse bag, the shopping cart, the car and storage with a weight limit all get the new limit. 2 means twice the game's limit. Any value from 0.1 to 1000 works, and a value below 1 makes the game harder. It starts at 1, the game's own.[/*]
+[*][b]More carry weight everywhere[/b]: your backpack, the hiking pack, the warehouse bag, the shopping cart, the car and storage with a weight limit all get the new limit. 2 means twice the game's limit. Any value from 0.1 to 1000 works, and a value below 1 makes the game harder. It starts at 1, the game's.[/*]
 [*][b]Bigger bags and storage[/b]: the Inventories tab in Mod Manager makes everything bigger at once, sets the size of a whole category, or sets the columns, rows and weight limit of one bag or storage piece. A preview shows how a full bag looks at the new size.[/*]
 [*][b]Categories of about the same size[/b]: Bags, Vehicles, Small storage, Medium storage, Large storage and Extra large storage. Set a category's columns and rows and every inventory in it gets that size. A size set for one inventory beats its category.[/*]
 [*][b]Changes apply right away[/b]: in a game, new sizes, weight limits, item sizes and item weights apply as soon as you change them.[/*]

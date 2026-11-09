@@ -10,6 +10,6 @@ public sealed record TableSettings(
     Inventories Grids,
     Items Items)
 {
-    /// <summary>The game's own values everywhere: what Uninstall prep writes back.</summary>
+    /// <summary>The game's values everywhere: what Uninstall prep writes back.</summary>
     public static readonly TableSettings GameDefaults = new(1, 1, OverweightMode.Default, 80, 40, Inventories.Default, Items.Default);
 }

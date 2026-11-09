@@ -47,7 +47,7 @@ public static class Overweight
 }
 
 /// <summary>
-/// Keeps the game's own value for each key of a table this mod writes. A value that is not the one this mod last
+/// Keeps the game's value for each key of a table this mod writes. A value that is not the one this mod last
 /// wrote is the game's (the table was loaded again, or this is the first look), so every new setting is worked out
 /// from the game's value, never from one already changed.
 /// </summary>

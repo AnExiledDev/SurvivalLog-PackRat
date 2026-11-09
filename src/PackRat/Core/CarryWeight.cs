@@ -8,7 +8,7 @@ namespace PackRat.Core;
 /// </summary>
 public static class CarryWeight
 {
-    // Out of the box the game's own limit stands; the player raises it.
+    // Out of the box the game's limit stands; the player raises it.
     public const double DefaultMultiplier = 1;
     public const double MinMultiplier = 0.1;
     public const double MaxMultiplier = 1000;

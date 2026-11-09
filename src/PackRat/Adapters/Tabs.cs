@@ -7,7 +7,7 @@ using PackRat.Core;
 namespace PackRat.Adapters;
 
 /// <summary>
-/// The plugin's side of the Inventories and Items tabs: hands them the game's own sizes and weights and both files,
+/// The plugin's side of the Inventories and Items tabs: hands them the game's sizes and weights and both files,
 /// and writes a file back when a tab saves, keeping the previous one as .bak. A save applies in the game right away,
 /// or at the next load when no game is running.
 /// </summary>

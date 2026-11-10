@@ -3,7 +3,7 @@ Summary: Set how much your backpack, shopping cart, car and storage can hold: gr
 
 Description (BBCode):
 [center][img]https://sldb.core-directive.com/media/save/3-remove-with-care.png[/img]
-[img]https://sldb.core-directive.com/media/notice/configure-first.png[/img][/center]
+[img]https://sldb.core-directive.com/media/notice/off.png[/img][/center]
 
 Survival Log limits how much your bags, storage and vehicles can hold, both in weight and in grid space. Pack Rat lets you set both, make items smaller or lighter, and choose how much a heavy load slows you down.
 

@@ -510,17 +510,33 @@
     return '<span class="stp" data-act="' + act + '"' + (extra || '') + '><b data-d="-1">&minus;</b><input value="' + esc(value) + '"' + (placeholder ? ' placeholder="' + esc(placeholder) + '"' : '') + '><b data-d="1">+</b>' + (unit ? '<i>' + unit + '</i>' : '') + '</span>';
   }
 
-  // An empty box (a category side that follows the multiplier) steps from start().
+  // An empty box (a category side that follows the multiplier) steps from start(). Blanking a box that has a start
+  // makes it follow again; any other box left blank or with no number in it changes nothing. The box then shows what
+  // the setting is (defaultValue is the value the last redraw wrote), also after Enter, while it still has focus.
   function bindStepper(root, act, step, min, max, set, start) {
     root.querySelectorAll('.stp[data-act="' + act + '"]').forEach(el => {
       const input = el.querySelector('input');
       const clamp = v => Math.min(max, Math.max(min, Math.round(v / step) * step));
       const apply = v => { set(+clamp(v).toFixed(2), el); rerender(); };
-      const now = () => isNum(parseFloat(input.value)) ? parseFloat(input.value) : start ? start() : min;
+      const shown = () => isNum(parseFloat(input.defaultValue)) ? parseFloat(input.defaultValue) : start ? start() : min;
+      const now = () => isNum(parseFloat(input.value)) ? parseFloat(input.value) : shown();
 
       el.querySelectorAll('b').forEach(b => b.onclick = () => apply(now() + step * +b.dataset.d));
-      input.onchange = () => input.value.trim() === '' && start ? (set(null, el), rerender()) : apply(now());
+      input.onchange = () => {
+        if (input.value.trim() === '' && start) { set(null, el); rerender(); }
+        else if (isNum(parseFloat(input.value))) apply(parseFloat(input.value));
+        else rerender();
+
+        input.value = input.defaultValue;
+      };
     });
+  }
+
+  // Every word typed has to be somewhere in the texts, in any order, so extra spaces change nothing.
+  function matchesSearch(texts, query) {
+    const words = String(query || '').toLowerCase().split(/\s+/).filter(Boolean);
+
+    return words.every(w => texts.some(s => s && String(s).toLowerCase().includes(w)));
   }
 
   function toast(html, isWarn) {
@@ -722,10 +738,7 @@
   function entryMatches(e) {
     if (ui.ggrp === 'chg' && !isEntryChanged(e)) return false;
     if (ui.ggrp !== 'all' && ui.ggrp !== 'chg' && e.grp !== ui.ggrp) return false;
-    if (!ui.gq) return true;
-
-    const q = ui.gq.toLowerCase();
-    return [e.name.en, e.name.zh, ...e.rows.flatMap(r => (r.pieces || []).flatMap(p => [p.en, p.zh]))].some(s => s && s.toLowerCase().includes(q));
+    return matchesSearch([e.name.en, e.name.zh, ...e.rows.flatMap(r => (r.pieces || []).flatMap(p => [p.en, p.zh]))], ui.gq);
   }
 
   function entryList() {
@@ -946,8 +959,7 @@
   function catEditor() {
     const list = catItems();
     const rule = currentRule() || {};
-    const q = ui.iq.toLowerCase();
-    const shown = list.filter(it => !q || it.en.toLowerCase().includes(q) || it.zh.includes(ui.iq));
+    const shown = list.filter(it => matchesSearch([it.en, it.zh], ui.iq));
     const counts = sizeCounts(list).slice(0, 4).map(([k, n]) => k + ' <b>' + n + '</b>').join(' &middot; ');
     const overrides = list.filter(it => st.items.ids[it.id]).length;
     let tiles = '';
@@ -1138,8 +1150,8 @@
     return false;
   }
 
-  // gridOf, categoryOf and gridsFile are read by the tests.
-  window.__slpackrat = { data, saved, setItemWeight, gridOf, categoryOf: id => bagById.has(id) ? bagById.get(id).cat : '', sizeOf: id => { const s = sizeOf(itemById.get(id)); return s.w + 'x' + s.h; }, gridsFile: () => JSON.stringify(gridsToFile()) };
+  // gridOf, categoryOf, gridsFile, matchesSearch and bindStepper are read by the tests.
+  window.__slpackrat = { data, saved, setItemWeight, gridOf, matchesSearch, bindStepper, categoryOf: id => bagById.has(id) ? bagById.get(id).cat : '', sizeOf: id => { const s = sizeOf(itemById.get(id)); return s.w + 'x' + s.h; }, gridsFile: () => JSON.stringify(gridsToFile()) };
 
   if (!Array.isArray(window.__modmanagerTabs)) window.__modmanagerTabs = [];
 

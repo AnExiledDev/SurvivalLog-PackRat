@@ -136,6 +136,70 @@ public class TabScriptTests
         Assert.Equal("large", page.Text("window.__slpackrat.categoryOf(1003)"));
     }
 
+    /// <summary>
+    /// Both search boxes matched the whole typed text, so a space before or after a word, or two words in another order
+    /// than the name has them, found nothing.
+    /// </summary>
+    [Theory]
+    [InlineData("camping backpack", true)]
+    [InlineData("  backpack   camping ", true)]
+    [InlineData("BACKPACK", true)]
+    [InlineData("背包", true)]
+    [InlineData("", true)]
+    [InlineData("backpack rope", false)]
+    public void A_search_finds_every_typed_word_in_any_order(string query, bool isFound)
+    {
+        var page = new Page();
+
+        Assert.Equal(isFound ? "true" : "false", page.Text($"window.__slpackrat.matchesSearch(['Camping Backpack', '露营背包', null], '{query}')"));
+    }
+
+    /// <summary>
+    /// A number box left blank read as its lowest value: clearing the item weight box set every item to 0.1. A blank box,
+    /// or one with no number in it, now changes nothing and shows the setting again; - and + step from the setting.
+    /// </summary>
+    [Fact]
+    public void A_blank_number_box_changes_nothing_and_shows_the_setting_again()
+    {
+        var page = new Page();
+
+        page.Run("""
+            var setTo = [];
+            var input = { value: '', defaultValue: '1.00' };
+            var plus = { dataset: { d: '1' } };
+            var el = { querySelector: function () { return input; }, querySelectorAll: function () { return [plus]; } };
+            window.__slpackrat.bindStepper({ querySelectorAll: function () { return [el]; } }, 'iw', 0.05, 0.1, 3, function (v) { setTo.push(v); });
+            function type(text) { input.value = text; input.onchange(); return input.value; }
+            """);
+
+        Assert.Equal("1.00", page.Text("type(' ')"));
+        Assert.Equal("1.00", page.Text("type('abc')"));
+        Assert.Equal("", page.Text("setTo.join(',')"));
+
+        page.Run("type('99')");
+        page.Run("input.value = ''; plus.onclick()");
+
+        Assert.Equal("3,1.05", page.Text("setTo.join(',')"));
+    }
+
+    /// <summary>A category side that follows the multiplier is blanked to follow it again; that must still work.</summary>
+    [Fact]
+    public void Blanking_a_box_that_follows_the_multiplier_makes_it_follow_again()
+    {
+        var page = new Page();
+
+        page.Run("""
+            var setTo = [];
+            var input = { value: ' ', defaultValue: '12' };
+            var el = { querySelector: function () { return input; }, querySelectorAll: function () { return []; } };
+            window.__slpackrat.bindStepper({ querySelectorAll: function () { return [el]; } }, 'cw', 1, 1, 30, function (v) { setTo.push(v); }, function () { return 8; });
+            input.onchange();
+            """);
+
+        Assert.Equal("1", page.Text("setTo.length"));
+        Assert.Equal("null", page.Text("setTo[0]"));
+    }
+
     private sealed class Page
     {
         // Timers wait until the test runs them; a cleared one is dropped, as in a browser.

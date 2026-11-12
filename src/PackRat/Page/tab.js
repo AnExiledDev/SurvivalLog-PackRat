@@ -723,7 +723,7 @@
 
     return '<div class="pr-top"><div class="pr-top-l"><div class="pr-top-t">' + T('SIZE MULTIPLIER', '大小倍率') + '</div>'
       + '<div class="pr-scale' + (g.all !== 1 ? ' chg' : '') + '"><span>' + T('All inventories', '全部库存') + '</span>' + stepper('scale', g.all.toFixed(2), 'x') + '</div>'
-      + '<em>' + T('Each category below can have its own.', '下方每个类别都可以单独设置。') + '</em></div><div class="pr-top-r"><span>' + T('Preview', '预览') + '</span><div class="pr-seg">'
+      + '<em>' + T('Each category below can have its own multiplier.', '下方每个类别都可以单独设置倍率。') + '</em></div><div class="pr-top-r"><span>' + T('Preview', '预览') + '</span><div class="pr-seg">'
       + Object.keys(LOADS).map(k => '<span data-load="' + k + '"' + (ui.load === k ? ' class="on"' : '') + '>' + T(LOADS[k].en, LOADS[k].zh) + '</span>').join('') + '</div></div></div>';
   }
 
@@ -827,7 +827,7 @@
     const ghost = '<div class="pr-ghost" style="width:' + g.gameW * cell + 'px;height:' + g.gameH * cell + 'px"><em>' + T('default ', '默认 ') + g.gameW + 'x' + g.gameH + '</em></div>';
     const weightBar = g.limit > 0 ? '<div class="pr-wbar"><span>' + kg(grams) + ' / ' + (g.limit / 1000).toFixed(1) + ' kg</span><i style="width:' + Math.min(100, grams / g.limit * 100) + '%"' + (grams > g.limit ? ' class="over"' : '') + '></i></div>' : '';
     const verdict = !load.length ? T('Empty.', '空。')
-      : left.length ? '<b class="warn">' + T(left.length + ' of ' + load.length + ' items don\'t fit.', load.length + ' 件物品中有 ' + left.length + ' 件放不下。') + '</b> ' + (shrunk ? T('In game, they go into shopping bags in the living room.', '游戏中会装进客厅的购物袋。') : '')
+      : left.length ? '<b class="warn">' + T(left.length + ' of ' + load.length + ' items don\'t fit.', load.length + ' 件物品中有 ' + left.length + ' 件放不下。') + '</b> ' + (shrunk ? T('In a game, they go into the shopping bags in the living room.', '游戏中会装进客厅的购物袋。') : '')
       : '<b class="ok">' + T('All ' + load.length + ' items fit.', load.length + ' 件物品全部放得下。') + '</b> ' + T(free + ' cells free.', '剩余 ' + free + ' 格。');
 
     return '<div class="pr-pv"><div class="pr-pv-c" style="max-height:' + (box.h + 24) + 'px"><div class="pr-canvas" style="width:' + Math.max(g.w, g.gameW) * cell + 'px;height:' + Math.max(g.h, g.gameH) * cell + 'px">'
@@ -1016,7 +1016,7 @@
       + step(T('All items half size', '所有物品占格减半'), st.items.allHalf ? halfOf(it).w + 'x' + halfOf(it).h : '', s.from === 'half')
       + step(T('Default', '默认'), it.w + 'x' + it.h, s.from === 'game') + '</ol>';
     const multiplier = g.from === 'all' ? T(' (item weight multiplier applied)', '（已应用物品重量倍率）') : g.from === 'cat' || g.from === 'sub' ? T(' (category multiplier applied)', '（已应用类别倍率）') : '';
-    const holdsHtml = holds ? '<label>' + T('Fits in a level 1 backpack', '1级背包可装') + '</label><div class="pr-holds"><b>' + holds.n.toLocaleString() + '</b> ' + T('of these', '件') + '<span>' + (holds.limitedBy === 'weight' ? T('(weight limit)', '（受重量限制）') : T('(space)', '（受空间限制）')) + '</span></div>'
+    const holdsHtml = holds ? '<label>' + T('Fits in a level 1 backpack', '1级背包可装') + '</label><div class="pr-holds"><b>' + holds.n.toLocaleString() + '</b> ' + T('of these', '件') + '<span>' + (holds.limitedBy === 'weight' ? T('(limited by weight)', '（受重量限制）') : T('(limited by space)', '（受空间限制）')) + '</span></div>'
       + '<div class="pr-m-pv">' + holdsPreview(it) + '</div>' : '';
 
     return '<div class="pr-modal"><div class="pr-mcard"><div class="pr-m-h"><div class="pr-m-icon">' + img(it.icon) + '</div><div><div class="pr-ed-t">' + esc(itemName(it)) + '</div><div class="pr-ed-s">' + catName + ' &middot; ' + T('stacks to ', '堆叠上限 ') + it.stack + ' &middot; #' + it.id + '</div></div><span class="close-btn" data-act="close-item">&#x2715;</span></div>'

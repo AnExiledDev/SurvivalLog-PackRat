@@ -40,7 +40,7 @@
   <!-- What the Mod Manager's Mods screen shows about this mod. -->
   <ItemGroup>
     <AssemblyMetadata Include="ModManager.Name" Value="Pack Rat&#10;背包达人" />
-    <AssemblyMetadata Include="ModManager.Description" Value="Carry more: bigger bags, storage and vehicles, smaller or lighter items, a higher weight limit and a choice of overweight slowdown, all set from two tabs in the Mod Manager.&#10;多装一点：更大的背包、储物家具和载具，更小或更轻的物品，更高的负重上限，以及可调的超重减速，都可以在模组管理器的两个页面里设置。" />
+    <AssemblyMetadata Include="ModManager.Description" Value="Carry more. Bigger bags, storage and vehicles, smaller or lighter items, a higher weight limit, and your choice of how much a heavy load slows you down. Bag and item sizes are set on two tabs in Mod Manager.&#10;多装一点。更大的背包、储物家具和载具，更小或更轻的物品，更高的负重上限，还能自己决定背得太重时减速多少。背包和物品的大小在模组管理器的两个页面里设置。" />
     <AssemblyMetadata Include="ModManager.Author" Value="AnExiledDev" />
     <AssemblyMetadata Include="ModManager.Category" Value="Balance" />
     <AssemblyMetadata Include="ModManager.GameVersion" Value="1.1.20719" />

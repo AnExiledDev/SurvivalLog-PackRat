@@ -24,9 +24,9 @@ internal static class LoadHooks
         hooks.Patch(typeof(LoadHooks), typeof(BattleLogicWorld), nameof(BattleLogicWorld.Initialize), prefix: nameof(BeforeWorldStart),
             done: "hooked the world start", consequence: "sizes and weights keep the game's values until the items load");
         hooks.Patch(typeof(LoadHooks), typeof(ItemManager), nameof(ItemManager.LoadItemsFromSave), prefix: nameof(BeforeItemsLoad), postfix: nameof(AfterItemsLoad), finalizer: nameof(ItemsLoadEnded),
-            done: "hooked the item load", consequence: "items that no longer fit go on the floor the game's way");
+            done: "hooked the item load", consequence: "items that no longer fit drop to the floor, as they do without Pack Rat");
         hooks.Patch(typeof(LoadHooks), typeof(DropItemManager), nameof(DropItemManager.TryDropOverflowItemData), prefix: nameof(BeforeOverflowDrop),
-            done: "hooked the overflow drop", consequence: "items that no longer fit go on the floor the game's way");
+            done: "hooked the overflow drop", consequence: "items that no longer fit drop to the floor, as they do without Pack Rat");
     }
 
     private static void BeforeWorldStart() => WriteTables("world start");

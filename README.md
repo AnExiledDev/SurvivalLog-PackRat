@@ -1,17 +1,17 @@
 # Pack Rat
 
-Bigger bags, smaller and lighter items, and more carry weight. Out of the box it changes nothing: every setting starts at the game's value until you set it up, most easily in Mod Manager.
+Bigger bags, smaller and lighter items, and more carry weight. Out of the box it changes nothing. Every setting starts at the game's value until you change it, and Mod Manager is the easiest place to do that.
 
 Survival Log limits how much your backpack, your storage furniture, the shopping cart and the car can hold, both in weight and in grid space. Pack Rat lets you raise both, make items smaller or lighter, and change how much a heavy load slows you down.
 
 ## Features
 
-- **More carry weight everywhere**: set `CarryWeight` to how many times more weight everything can hold. 2 means twice the game's limit. Any value from 0.1 to 1000 works, and a value below 1 makes the game harder. It starts at 1, the game's.
+- **More carry weight everywhere**: set `CarryWeight` to how many times more weight everything can hold. 2 means twice the game's limit. Any value from 0.1 to 1000 works, and a value below 1 makes the game harder. It starts at 1, which is the game's limit.
 - **Bigger bags and storage** (Inventories tab in Mod Manager): make everything bigger at once, set the size of a whole category, or set the columns, rows and weight limit of one bag or storage piece. A preview shows how a full bag looks at the new size.
 - **Categories of about the same size**: Bags, Vehicles, Small storage, Medium storage, Large storage and Extra large storage. Setting the columns and rows of a category gives every inventory in it that size. A size set for one inventory beats its category.
 - **Smaller, lighter items** (Items tab in Mod Manager): make every item 1x1 or half its size, or set a size or weight for a whole category, a food group or a single item.
 - **Lighter or heavier items**: `ItemWeight` multiplies the weight of every item, from 0.1x to 3x.
-- **Your own slowdown**: `Overweight` keeps the game's slowdown (Default), lets you choose where it starts and how strong it is (Custom), or removes it and stops you picking up more at the limit (Hard limit).
+- **Choose how a heavy load slows you down**: `Overweight` keeps the game's slowdown (Default), lets you choose where it starts and how strong it is (Custom), or removes it and stops you picking up more at the limit (Hard limit).
 - **Changes apply right away**: in a game, new sizes, weight limits, item sizes and item weights apply as soon as you change them. Outside a game they apply when you load a save.
 - **Nothing is lost**: when a bag gets smaller or an item gets bigger, items that no longer fit move to a free spot in the same bag. If the bag is full, they go into the shopping bags in the living room, or onto the floor if those are full too. A message tells you how many moved.
 - **Big bags scroll**: a bag too tall or wide for the screen gets a scrollbar on the bag screen, so the rest of the screen keeps its size. Turn `ScrollBars` off to let the game shrink the whole screen to fit instead.
@@ -21,16 +21,16 @@ Pack Rat writes nothing into your save and does not edit game files. The new siz
 
 ## Known issues and limits
 
-- **A slowdown already on keeps its strength for a while.** After you change `Overweight`, `SlowFrom` or `SlowBy` during a game, a slowdown that had already started can keep its old strength until it ends.
-- **`UninstallPrep` works when you load a save**, not the moment you turn it on.
+- **A slowdown change can take a while to show.** After you change `Overweight`, `SlowFrom` or `SlowBy` during a game, a slowdown that had already started can keep its old strength until it ends.
+- **`UninstallPrep` waits for you to load a save.** Turning it on during a game changes nothing until the next load.
 - **On a big bag that scrolls, scroll first, then drag.** Scroll to the spot you want before you drag an item there.
 - **Material racks are not rearranged.** If a material rack gets smaller during a game, load your save to move what no longer fits.
-- **Very large carry weights are capped.** At 1000x the hiking pack, warehouse bag, shopping cart and car stop at about 833x, 801x, 556x and 208x so the game's numbers stay valid.
+- **Very large carry weights are capped**, because the game can't store a bigger weight limit. At 1000x the hiking pack, warehouse bag, shopping cart and car stop at about 833x, 801x, 556x and 208x.
 - **The shopping bags in the living room hold only so much.** When they are full, the rest goes on the floor.
 
 ## Requirements
 
-- Survival Log 1.1.20719. Built for this version; a game update can break it until the mod is updated.
+- Survival Log 1.1.20719. It's built for this version, and a game update can break it until the mod is updated.
 - The [BepInEx Pack for Survival Log](https://www.nexusmods.com/survivallog/mods/12), the BepInEx 6 (IL2CPP) build for the game.
 - [Exiled's Toolkit](https://github.com/AnExiledDev/SurvivalLog-ExiledToolkit) 0.19.0 or newer. Pack Rat does not load without it. It shows Pack Rat's messages and connects the Inventories and Items tabs to the mod.
 - Optional: [Mod Manager](https://www.nexusmods.com/survivallog/mods/73), for the Inventories and Items tabs and the Mods screen. Without it, change the settings in the config file.
@@ -65,8 +65,8 @@ See [CONFIG.md](CONFIG.md) for every setting.
 
 Pack Rat writes to `BepInEx\LogOutput.log`. Check it for these lines:
 
-- `Pack Rat 0.5.1 started` when the game starts.
-- `hooked the world start`, `hooked the item load` and `hooked the overflow drop` right after. A line starting with `could not hook` instead means a game update broke part of the mod; the line says what keeps the game's values.
+- `Pack Rat 0.5.2 started` when the game starts.
+- `hooked the world start`, `hooked the item load` and `hooked the overflow drop` right after. A line starting with `could not hook` instead means a game update broke part of the mod. The rest of that line says what happens instead.
 - `world start: tables written: ...` and `item load: tables written: ...` each time you load a save, with how many limits, grids, sizes and weights changed.
 - `applied in game: ...` each time you change a setting during a game, with how many items were resized, moved or had no room.
 - `after the load: ...` when items had to move because they no longer fit.
@@ -76,7 +76,7 @@ Pack Rat writes to `BepInEx\LogOutput.log`. Check it for these lines:
 
 Found a bug, have an idea, or something feels off? Come say so on the Core Directive Discord: https://discord.gg/trTsyxUFqg . When reporting a bug, attach `BepInEx\LogOutput.log`.
 
-To reach me directly, message `exiled.dev` on Discord; you can find me in the [official Survival Log Discord](https://discord.gg/MZGg4gQAUe). I'm also on X as [@AnExiledDev](https://x.com/AnExiledDev).
+To reach me directly, message `exiled.dev` on Discord. You can find me in the [official Survival Log Discord](https://discord.gg/MZGg4gQAUe). I'm also on X as [@AnExiledDev](https://x.com/AnExiledDev).
 
 ## Build
 

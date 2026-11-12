@@ -112,17 +112,17 @@ internal sealed class Settings
         private const string ChoiceZh = "ModManager.ChoiceZh=";
 
         public static ConfigEntry<double> CarryWeight(ConfigFile config) => config.Bind(Weight, "CarryWeight", Core.CarryWeight.DefaultMultiplier,
-            $"How many times more weight every bag, storage piece and vehicle can hold. 2 means twice the game's limit; 1 (the default) is the game's. Places with no weight limit stay without one. The Inventories tab can set a limit for one bag or piece. From {Core.CarryWeight.MinMultiplier} to {Core.CarryWeight.MaxMultiplier}. Applies right away.\n" +
+            $"How many times more weight every bag, storage piece and vehicle can hold. 2 means twice the game's limit, and 1 (the default) keeps the game's limit. Anything that has no weight limit in the game still has none. The Inventories tab can set a limit for a single bag or storage piece. From {Core.CarryWeight.MinMultiplier} to {Core.CarryWeight.MaxMultiplier}. Applies right away.\n" +
             $"所有背包、储物家具和载具的负重上限倍数。2 表示游戏原有负重上限的两倍，1（默认）为游戏原值。原本没有负重上限的地方仍然没有上限。「库存」页面可以为单个背包或家具设置上限。范围 {Core.CarryWeight.MinMultiplier} 到 {Core.CarryWeight.MaxMultiplier}。立即生效。");
 
         public static ConfigEntry<double> ItemWeight(ConfigFile config) => config.Bind(Weight, "ItemWeight", 1.0, new ConfigDescription(
-            $"How many times heavier every item is. 1 is the game's weight; 0.5 makes everything half as heavy. The Items tab can set a different multiplier for a category, or a weight for one item. From {Core.ItemWeight.Min} to {Core.ItemWeight.Max}. Applies right away.\n" +
+            $"How many times heavier every item is. 1 keeps the game's weights, and 0.5 makes everything half as heavy. The Items tab can set a different multiplier for a category, or a weight for one item. From {Core.ItemWeight.Min} to {Core.ItemWeight.Max}. Applies right away.\n" +
             $"每件物品的重量倍数。1 为游戏原值，0.5 让所有物品轻一半。「物品」页面可以为某个类别设置不同的倍数，或为单件物品设置重量。范围 {Core.ItemWeight.Min} 到 {Core.ItemWeight.Max}。立即生效。",
             new AcceptableValueRange<double>(Core.ItemWeight.Min, Core.ItemWeight.Max)));
 
         public static ConfigEntry<string> Overweight(ConfigFile config) => config.Bind(Weight, "Overweight", Core.Overweight.DefaultName, new ConfigDescription(
-            "What happens when you carry close to your weight limit. Default: the game slows you down from 80% of the limit. Custom: you choose where the slowdown starts and how strong it is. Hard limit: no slowdown, you just can't pick up more once you reach the limit. Applies right away; a slowdown already on may keep its old strength until it ends.\n" +
-            "负重接近上限时的效果。「默认」(Default)：游戏原样，负重达到上限的 80% 起减速。「自定义」(Custom)：自己设定从哪里开始减速以及减速多少。「硬上限」(Hard limit)：不减速，只是达到上限后无法再拾取。立即生效；如果已经在减速，可能要等这次减速结束后才换成新的强度。",
+            "What happens when you carry close to your weight limit. Default: the game slows you down from 80% of the limit. Custom: you choose where the slowdown starts and how strong it is. Hard limit: there is no slowdown, but you can't pick up more once you reach the limit. Applies right away, but a slowdown that already started may keep its old strength until it ends.\n" +
+            "负重接近上限时的效果。「默认」(Default)：和正常游戏一样，负重达到上限的 80% 起减速。「自定义」(Custom)：自己设定从哪里开始减速以及减速多少。「硬上限」(Hard limit)：不减速，只是达到上限后无法再拾取。立即生效，但如果已经在减速，可能要等这次减速结束后才换成新的强度。",
             new AcceptableValueList<string>(Core.Overweight.Choices), ChoiceZh + Core.Overweight.DefaultName + "=默认", ChoiceZh + Core.Overweight.CustomName + "=自定义", ChoiceZh + Core.Overweight.HardLimitName + "=硬上限"));
 
         public static ConfigEntry<int> SlowFrom(ConfigFile config) => config.Bind(Weight, "SlowFrom", 80, new ConfigDescription(
@@ -137,7 +137,7 @@ internal sealed class Settings
 
         public static ConfigEntry<bool> ScrollBars(ConfigFile config) => config.Bind(Screens, "ScrollBars", true,
             "A bag or storage too big for the screen gets a scrollbar, so the rest of the screen keeps its size. Turn it off and the game shrinks the whole screen until it fits, as it does without Pack Rat. A very big bag can then get too small to use. Applies right away.\n" +
-            "放不下屏幕的背包或储物会显示滚动条，界面的其他部分保持原大小。关闭后由游戏把整个界面缩小到能放下为止，和没有本模组时一样；很大的背包可能会缩得太小而难以使用。立即生效。");
+            "屏幕放不下的背包或储物会显示滚动条，界面的其他部分保持原大小。关闭后由游戏把整个界面缩小到能放下为止，和没有本模组时一样；很大的背包可能会缩得太小而难以使用。立即生效。");
 
         public static ConfigEntry<bool> UninstallPrep(ConfigFile config) => config.Bind(Uninstall, "UninstallPrep", false,
             "Turn this on before you remove Pack Rat. The next time you load a save, bag sizes, item sizes, weights and the slowdown all go back to the game's, and anything that no longer fits goes into the shopping bags in the living room. When the message says Pack Rat is safe to remove, save the game, then remove the mod.\n" +

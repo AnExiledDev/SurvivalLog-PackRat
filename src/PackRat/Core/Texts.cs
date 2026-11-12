@@ -18,7 +18,7 @@ public static class Texts
         {
             return zh
                 ? ("背包达人可以安全移除了", "所有大小和重量已恢复为游戏原值。" + (moved ?? "") + "请先存档，再移除本模组。")
-                : ("Pack Rat is safe to remove", "Every size and weight is back to the game's. " + (moved == null ? "" : moved + " ") + "Save the game, then remove the mod.");
+                : ("Pack Rat is safe to remove", "All sizes and weights are back to the game's values. " + (moved == null ? "" : moved + " ") + "Save the game, then remove the mod.");
         }
 
         if (moved == null) return null;

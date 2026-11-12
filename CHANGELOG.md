@@ -1,19 +1,25 @@
 # Changelog
 
+## 0.5.2
+
+- Clearer wording in the settings and on screen.
+- Made for Survival Log 1.1.20719.
+
 ## 0.5.1
 
 - The search boxes in the Inventories and Items tabs now find every word you type, in any order. "backpack camping" finds Camping Backpack, and a space before or after a word no longer hides everything.
-- Leaving a number box blank no longer sets it to the lowest value. A blank box, or one with no number in it, goes back to the setting. The - and + buttons next to it count from the setting too, not from the lowest value.
+- Leaving a number box blank no longer sets it to the lowest value. A blank box, or one with no number in it, goes back to the setting. The - and + buttons next to it also count from the setting.
 - Made for Survival Log 1.1.20719.
 
 ## 0.5.0
 
-- New `ScrollBars` setting, on by default. Turn it off and big bags no longer get a scrollbar: the game shrinks the whole screen until it fits, as it does without Pack Rat. A very big bag can then get too small to use. It applies right away, even on a screen that is already open.
+- New `ScrollBars` setting, on by default. Turn it off and the game shrinks the whole screen to fit a big bag, as it does without Pack Rat, which can make a very big bag too small to use.
+- `ScrollBars` applies right away, even on a screen that is already open.
 - Made for Survival Log 1.1.20719.
 
 ## 0.4.3
 
-- Now uses Exiled's Toolkit for its shared parts, so it needs Exiled's Toolkit 0.19.0 or newer.
+- Pack Rat now needs Exiled's Toolkit 0.19.0 or newer.
 - Made for Survival Log 1.1.20719.
 
 ## 0.4.2
@@ -29,7 +35,7 @@
 ## 0.4.0
 
 - Big bags now scroll on every bag screen, including the Brewing Barrel, the Cooking Station and the Juicer, and the screen looks right as soon as it opens instead of after a short flash.
-- New "All items half size" switch on the Items tab: every item takes half the space, rounded down, and a long item stays long. A 3x2 item becomes 2x1 and a 2x2 item becomes 1x1. Sizes set for a category or a single item still beat it.
+- New "All items half size" switch on the Items tab: every item takes half the space, rounded down, and a long item stays long. A 3x2 item becomes 2x1 and a 2x2 item becomes 1x1. A size set for a category or a single item still comes first.
 - The Inventories and Items tabs keep their place when you click a button, change a value or pick a category, instead of jumping back to the top.
 - Fixed on the Inventories tab: a horizontal scrollbar that did nothing, and category buttons running past the edge of the window.
 - Made for Survival Log 1.1.20151.
@@ -46,7 +52,7 @@
 
 ## 0.2.0
 
-- Bags, storage and vehicles can now be bigger, not only hold more weight. Mod Manager has a new Inventories tab: make everything bigger at once, or set the columns, rows and weight limit of one bag or storage piece, with a preview of how a full bag looks.
+- Bags, storage and vehicles can now get more space as well as more weight. Mod Manager has a new Inventories tab: make everything bigger at once, or set the columns, rows and weight limit of one bag or storage piece, with a preview of how a full bag looks.
 - Items can now take up less space and weigh less. Mod Manager has a new Items tab: make every item 1x1, set a size or weight for a whole category, or change a single item.
 - New setting `ItemWeight` makes every item lighter or heavier, from 0.1x to 3x.
 - New setting `Overweight` changes the slowdown from a heavy load. Default keeps the game's slowdown, Custom lets you choose where it starts and how strong it is, and Hard limit removes the slowdown but stops you picking up more at the limit.

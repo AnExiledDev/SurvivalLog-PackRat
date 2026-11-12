@@ -1,6 +1,6 @@
 # Pack Rat settings
 
-Settings live in `BepInEx\config\com.dev.survivallog.packrat.cfg`, created the first time the game starts with the mod. Change them in game on the Mod Manager's Mods screen, or edit the file while the game is closed. In a game, changes apply right away; outside a game, they apply when you load a save. `UninstallPrep` is the exception: it works when you load a save. Delete the file to get the defaults back.
+Settings live in `BepInEx\config\com.dev.survivallog.packrat.cfg`, created the first time the game starts with the mod. Change them in game on the Mod Manager's Mods screen, or edit the file while the game is closed. In a game, changes apply right away. Outside a game, they apply when you load a save. `UninstallPrep` is different, it always waits until you load a save. Delete the file to get the defaults back.
 
 ## Weight
 
@@ -12,9 +12,9 @@ Settings live in `BepInEx\config\com.dev.survivallog.packrat.cfg`, created the f
 | `SlowFrom` | `80` | With `Overweight` set to `Custom`: the slowdown starts at this percent of your weight limit. From 10 to 100. |
 | `SlowBy` | `40` | With `Overweight` set to `Custom`: how much slower you move once the slowdown starts, in percent. From 0 to 90. |
 
-`CarryWeight` at `1` is the game's carry weight. A value below 1 makes everything hold less. Places the game gives no weight limit keep no limit. Talents that raise your carry weight still add on top. A weight limit set for one bag on the Inventories tab replaces `CarryWeight` for that bag.
+`CarryWeight` at `1` is the game's carry weight. A value below 1 makes everything hold less. Anything that has no weight limit in the game still has none. Talents that raise your carry weight still add on top. A weight limit set for one bag on the Inventories tab replaces `CarryWeight` for that bag.
 
-Very large `CarryWeight` values are capped so the game's numbers stay valid. At 1000x the backpack gets the full 1000x, but the hiking pack, warehouse bag, shopping cart and car stop at the cap (about 833x, 801x, 556x and 208x).
+Very large `CarryWeight` values are capped, because the game can't store a bigger weight limit. At 1000x the backpack gets the full 1000x, but the hiking pack, warehouse bag, shopping cart and car stop at the cap (about 833x, 801x, 556x and 208x).
 
 `Overweight` choices:
 
@@ -26,9 +26,9 @@ Very large `CarryWeight` values are capped so the game's numbers stay valid. At 
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| `ScrollBars` | `true` | A bag or storage too big for the screen gets a scrollbar, so the rest of the screen keeps its size. Off: the game shrinks the whole screen until it fits, as it does without Pack Rat. |
+| `ScrollBars` | `true` | A bag or storage too big for the screen gets a scrollbar, so the rest of the screen keeps its size. Turn it off and the game shrinks the whole screen until it fits, as it does without Pack Rat. |
 
-With `ScrollBars` off, a very big bag can get too small to use, and on some screens the rest of the screen shrinks with it. It applies right away, even on a screen that is already open.
+With `ScrollBars` off, a very big bag can get too small to use, and on some screens the rest of the screen shrinks with it. `ScrollBars` applies right away, even on a screen that is already open.
 
 ## Uninstall
 
@@ -56,8 +56,8 @@ Every inventory is in one of six categories, by its size in the game:
 | Large storage | Storage from 61 to 140 cells, such as big cupboards, freezers and large racks |
 | Extra large storage | Storage over 140 cells, such as the biggest racks and display cabinets |
 
-For each side of an inventory's grid, the first of these that is set wins: the inventory's own columns or rows, then its category's columns or rows, then its category's multiplier, then the multiplier for all inventories. Columns or rows left on auto follow the multiplier. Setting a category's size gives every inventory in it the same size, so a category with levels, like Bags, loses the difference between levels; a multiplier keeps it.
+For each side of an inventory's grid, the first of these that is set wins: the inventory's own columns or rows, then its category's columns or rows, then its category's multiplier, then the multiplier for all inventories. Columns or rows left on auto follow the multiplier. Setting a category's size gives every inventory in it the same size, so every level of a category like Bags ends up the same size. A multiplier keeps the levels different.
 
-Each tab has a reset button that puts everything on it back to the default. Deleting a file does the same. If a file can't be read, Pack Rat uses the defaults for it and says why in `BepInEx\LogOutput.log`. Each save keeps the file it replaces next to it as `.bak`.
+Each tab has a reset button that puts everything on it back to the default. Deleting a file does the same. If a file can't be read, Pack Rat uses the defaults for it and says why in `BepInEx\LogOutput.log`. Each time a tab saves, the old file is kept next to the new one with `.bak` added to its name.
 
 The `Item weight` field on the Items tab is the same setting as `ItemWeight`.

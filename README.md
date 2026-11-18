@@ -32,7 +32,7 @@ Pack Rat writes nothing into your save and does not edit game files. The new siz
 
 - Survival Log 1.1.20719. It's built for this version, and a game update can break it until the mod is updated.
 - The [BepInEx Pack for Survival Log](https://www.nexusmods.com/survivallog/mods/12), the BepInEx 6 (IL2CPP) build for the game.
-- [Exiled's Toolkit](https://github.com/AnExiledDev/SurvivalLog-ExiledToolkit) 0.19.0 or newer. Pack Rat does not load without it. It shows Pack Rat's messages and connects the Inventories and Items tabs to the mod.
+- [Exiled's Toolkit](https://github.com/AnExiledDev/SurvivalLog-ExiledToolkit) 0.25.0 or newer. Pack Rat does not load without it. It shows Pack Rat's messages and connects the Inventories and Items tabs to the mod.
 - Optional: [Mod Manager](https://www.nexusmods.com/survivallog/mods/73), for the Inventories and Items tabs and the Mods screen. Without it, change the settings in the config file.
 
 ## Install
@@ -65,7 +65,7 @@ See [CONFIG.md](CONFIG.md) for every setting.
 
 Pack Rat writes to `BepInEx\LogOutput.log`. Check it for these lines:
 
-- `Pack Rat 0.5.2 started` when the game starts.
+- `Pack Rat 0.5.3 started` when the game starts.
 - `hooked the world start`, `hooked the item load` and `hooked the overflow drop` right after. A line starting with `could not hook` instead means a game update broke part of the mod. The rest of that line says what happens instead.
 - `world start: tables written: ...` and `item load: tables written: ...` each time you load a save, with how many limits, grids, sizes and weights changed.
 - `applied in game: ...` each time you change a setting during a game, with how many items were resized, moved or had no room.
@@ -80,7 +80,7 @@ To reach me directly, message `exiled.dev` on Discord. You can find me in the [u
 
 ## Build
 
-This is a BepInEx 6 IL2CPP plugin. It compiles against BepInEx, the game's IL2CPP interop assemblies and Exiled's Toolkit 0.19.0 or newer, so a game install with BepInEx set up and started once is required. The .NET 8 SDK is required.
+This is a BepInEx 6 IL2CPP plugin. It compiles against BepInEx, the game's IL2CPP interop assemblies and Exiled's Toolkit 0.25.0 or newer, so a game install with BepInEx set up and started once is required. The .NET 8 SDK is required.
 
 ```
 dotnet build src/PackRat -c Release -p:GameDir="C:\path\to\Survival Log" -p:ToolkitDll="C:\path\to\ExiledToolkit.dll"

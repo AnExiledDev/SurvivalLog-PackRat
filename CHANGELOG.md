@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.3
+
+- Mod Manager's Conflicts tab can now see what Pack Rat changes in the game, like item sizes and weights and how much each bag holds, so it can show when another mod changes the same things.
+- Now needs Exiled's Toolkit 0.25.0 or newer.
+- Made for Survival Log 1.1.21271.
+
 ## 0.5.2
 
 - Clearer wording in the settings and on screen.

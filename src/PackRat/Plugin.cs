@@ -13,10 +13,10 @@ namespace PackRat;
 [BepInDependency(ToolkitGuid, ToolkitVersion)]
 public sealed class Plugin : BasePlugin
 {
-    private const string Guid = "com.dev.survivallog.packrat";
-    private const string Version = "0.5.2";
+    internal const string Guid = "com.dev.survivallog.packrat";
+    private const string Version = "0.5.3";
     private const string ToolkitGuid = "com.dev.survivallog.exiledtoolkit";
-    private const string ToolkitVersion = ">=0.19.0";
+    private const string ToolkitVersion = ">=0.25.0";
 
     private Settings? _settings;
 

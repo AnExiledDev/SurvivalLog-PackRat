@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using ExiledToolkit;
 using ExiledToolkit.Game;
 using GameCore.HotUpdate;
 using PackRat.Core;
@@ -11,7 +13,8 @@ namespace PackRat.Adapters;
 /// from the bag table whenever they are used, and an item takes its size from the item table when it is added, so a
 /// write before the save's items load reaches everything. A write in the middle of a game also needs the items and
 /// bags that already exist brought up to date (see <see cref="LiveApply"/>). Each table value's own game number is kept, so a setting
-/// is always worked out from the game's, and Uninstall prep can put every one back.
+/// is always worked out from the game's, and Uninstall prep can put every one back. Each value is reported to Mod
+/// Manager as Pack Rat's when it differs from the game's, and as put back when it does not.
 /// </summary>
 internal static class GameTables
 {
@@ -50,9 +53,11 @@ internal static class GameTables
             if (row == null) continue;
 
             var id = row._ID_k__BackingField;
-            var limit = settings.Grids.LimitOf(id, BagLimits.Game(id, row._Burden_k__BackingField), settings.CarryWeight);
+            var gameLimit = BagLimits.Game(id, row._Burden_k__BackingField);
+            var limit = settings.Grids.LimitOf(id, gameLimit, settings.CarryWeight);
 
             BagLimits.Wrote(id, limit);
+            Report(nameof(Config_Bag), id, nameof(Config_Bag.Burden), limit, gameLimit);
 
             if (limit != row._Burden_k__BackingField)
             {
@@ -62,9 +67,11 @@ internal static class GameTables
 
             if (Read(row._Size_k__BackingField) is not Size current) continue;
 
-            var grid = settings.Grids.GridOf(id, BagSizes.Game(id, current));
+            var gameGrid = BagSizes.Game(id, current);
+            var grid = settings.Grids.GridOf(id, gameGrid);
 
             BagSizes.Wrote(id, grid);
+            Report(nameof(Config_Bag), id, nameof(Config_Bag.Size), grid, gameGrid);
 
             if (grid == current) continue;
 
@@ -85,9 +92,11 @@ internal static class GameTables
             var id = row._ID_k__BackingField;
             var category = row._Category_k__BackingField;
             var subCategory = row._SubCategory_k__BackingField;
-            var grams = settings.Items.GramsOf(id, category, subCategory, ItemGrams.Game(id, row._weight_k__BackingField), settings.ItemWeight);
+            var gameGrams = ItemGrams.Game(id, row._weight_k__BackingField);
+            var grams = settings.Items.GramsOf(id, category, subCategory, gameGrams, settings.ItemWeight);
 
             ItemGrams.Wrote(id, grams);
+            Report(nameof(Config_Item), id, nameof(Config_Item.weight), grams, gameGrams);
 
             if (grams != row._weight_k__BackingField)
             {
@@ -97,9 +106,11 @@ internal static class GameTables
 
             if (Read(row._Size_k__BackingField) is not Size current) continue;
 
-            var size = settings.Items.SizeOf(id, category, subCategory, ItemSizes.Game(id, current));
+            var gameSize = ItemSizes.Game(id, current);
+            var size = settings.Items.SizeOf(id, category, subCategory, gameSize);
 
             ItemSizes.Wrote(id, size);
+            Report(nameof(Config_Item), id, nameof(Config_Item.Size), size, gameSize);
 
             if (size == current) continue;
 
@@ -172,11 +183,27 @@ internal static class GameTables
         effect._FloatValue0_k__BackingField = speed;
         Overweight.Wrote("threshold", threshold);
         Overweight.Wrote("speed", speed);
+        Report(nameof(Config_GlobalSetting), key, nameof(Config_GlobalSetting.Params2), threshold, gameThreshold);
+        Report(nameof(Config_Effect), OverweightEffectId, nameof(Config_Effect.FloatValue0), speed, gameSpeed);
 
         // The game caches the threshold the first time it reads it; 0 means it has not read it yet.
         if (GameKey._GlobalSetting_BagOverweight != 0) GameKey._GlobalSetting_BagOverweight = threshold;
 
         return $"overweight from {threshold:0.##} of the limit, speed change {speed:0.##} (game: {gameThreshold:0.##}, {gameSpeed:0.##})";
+    }
+
+    /// <summary>Tells Mod Manager the field holds Pack Rat's value, or that it was put back to the game's.</summary>
+    private static void Report<T>(string table, object row, string field, T value, T game) where T : IEquatable<T>
+    {
+        if (value.Equals(game)) Claims.PutBack(Plugin.Guid, table, row, field);
+        else Claims.Wrote(Plugin.Guid, table, row, field, value);
+    }
+
+    /// <summary>A size is reported as its two numbers with a comma between, the way the table's list holds them.</summary>
+    private static void Report(string table, int id, string field, Size value, Size game)
+    {
+        if (value == game) Claims.PutBack(Plugin.Guid, table, id, field);
+        else Claims.Wrote(Plugin.Guid, table, id, field, $"{value.W},{value.H}");
     }
 
     private static Size? Read(IntList? pair) => pair != null && pair.Count >= 2 ? new Size(pair[0], pair[1]) : null;

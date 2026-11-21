@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.6
+
+- With `ScrollBars` off, the brewing, dyeing, trap and shop screens now shrink to fit the window too. Before, a big bag ran them off the edge of the screen.
+- With `ScrollBars` off, the key hints under a big bag no longer get cut off at the bottom of the window.
+- Made for Survival Log 1.1.21671.
+
 ## 0.5.5
 
 - The bag and shop screens use the whole window again instead of starting below the clock, so more of your bag shows before it needs to scroll.

@@ -189,6 +189,103 @@ public class BagFitTests
         Assert.True(page.Number("rootTop()") >= 0);
     }
 
+    // ----- ScrollBars off -----
+
+    private const string TallBrew = "page: 'BrewPanel', root: '.brew-system', w: 1280, h: 720, parts: [{ grid: '#bagGrid', w: 400, h: 1000 }, { grid: '#vatGrid', w: 300, h: 300 }]";
+
+    /// <summary>
+    /// The game never shrinks the brewing screen. With ScrollBars off a big bag ran it off the bottom of the window, so
+    /// Pack Rat shrinks it the way the game shrinks its other screens: by the room for its height (the window less the
+    /// game's 48px margin) over its height, with the bag at its full size.
+    /// </summary>
+    [Fact]
+    public void With_scrollbars_off_a_screen_the_game_never_shrinks_is_shrunk_to_fit_the_window()
+    {
+        var page = new Fit(TallBrew);
+
+        page.Run("window.__slprBagsScroll(false)");
+
+        Assert.Equal((720 - 48) / 1000.0, page.Number("zoom()"), 3);
+        Assert.Equal(1000, page.Number("boxOf('#bagGrid').offsetHeight"));
+        Assert.True(page.Number("rootTop()") >= 0);
+        Assert.True(page.Number("rootBottom()") <= 720);
+    }
+
+    /// <summary>A screen too wide for the window is shrunk for its width the same way, here the trap screen's three columns.</summary>
+    [Fact]
+    public void With_scrollbars_off_a_screen_too_wide_is_shrunk_for_its_width()
+    {
+        var page = new Fit("page: 'TrapPanel', cols: true, w: 1280, h: 720, parts: [{ root: '#bagCol', grid: '#backpackGrid', w: 1000, h: 300 }, { root: '.popup-container', w: 420, h: 500 }, { root: '#storeCol', grid: '#storeGrid', w: 400, h: 300 }]");
+
+        page.Run("window.__slprBagsScroll(false)");
+
+        Assert.Equal((1280 - 48) / 1820.0, page.Number("zoom()"), 3);
+    }
+
+    /// <summary>A screen first opened while ScrollBars is off is shrunk too, and fitted again when the window changes size.</summary>
+    [Fact]
+    public void A_screen_opened_with_scrollbars_off_is_shrunk_and_fitted_again_on_a_resize()
+    {
+        var page = new Fit(TallBrew, before: "window.__slprBagsScroll(false)");
+
+        Assert.Equal((720 - 48) / 1000.0, page.Number("zoom()"), 3);
+
+        page.Run("resize(1600, 900)");
+
+        Assert.Equal((900 - 48) / 1000.0, page.Number("zoom()"), 3);
+    }
+
+    /// <summary>Turning ScrollBars back on takes the shrink off, and the bag scrolls again at full size.</summary>
+    [Fact]
+    public void Turning_scrollbars_back_on_undoes_the_shrink()
+    {
+        var page = new Fit(TallBrew);
+
+        page.Run("window.__slprBagsScroll(false); window.__slprBagsScroll(true)");
+
+        Assert.Equal(1, page.Number("zoom()"));
+        Assert.True(page.Number("boxOf('#bagGrid').offsetHeight") < 1000);
+        Assert.True(page.Number("rootBottom()") <= 720);
+    }
+
+    /// <summary>
+    /// The game shrinks the bag screen by its panels alone, so the line of hints hanging under them ran off a shrunk
+    /// screen. While ScrollBars is off the screen holds room for the line under its panels, and with it back on it doesn't.
+    /// </summary>
+    [Fact]
+    public void With_scrollbars_off_the_bag_screen_holds_room_for_its_hints()
+    {
+        var page = new Fit("page: 'BackpackUI', root: '.backpack-container', shrink: 24, w: 1280, h: 720, hang: 30, parts: [{ grid: '#bag', wrapper: true, w: 400, h: 900 }]");
+        const string room = "frame.contentDocument.head.children.filter(function (c) { return c.id === 'slpackrat-bag-shrink'; })[0]";
+
+        page.Run("window.__slprBagsScroll(false)");
+
+        Assert.Contains("padding-bottom:30px", page.Text(room + ".textContent"));
+        Assert.Equal("false", page.Text(room + ".disabled"));
+
+        page.Run("window.__slprBagsScroll(true)");
+
+        Assert.Equal("true", page.Text(room + ".disabled"));
+    }
+
+    /// <summary>
+    /// The shop's dark layer is as big as the window, so a shrunk shop drew it smaller and left part of the window
+    /// uncovered. While the shop is shrunk the layer is sized from the window's size in the shrunk pixels, which comes
+    /// back to the whole window once shrunk.
+    /// </summary>
+    [Fact]
+    public void A_shrunk_shop_still_darkens_the_whole_window()
+    {
+        var page = new Fit("page: 'ShopUI', root: '.shop-container', w: 1280, h: 720, parts: [{ w: 400, h: 1000 }]", before: "window.__slprBagsScroll(false)");
+        const string layer = "frame.contentDocument.head.children.filter(function (c) { return c.id === 'slpackrat-bag-shrink'; })[0]";
+
+        Assert.Equal((720 - 24) / 1000.0, page.Number("zoom()"), 3);
+        Assert.Contains(".bg-mask{width:var(--slpr-vw,100vw);height:var(--slpr-vh,100vh)}", page.Text(layer + ".textContent"));
+        Assert.Equal("false", page.Text(layer + ".disabled"));
+        Assert.Equal(1280, page.Number("parseFloat(view.body.style.getPropertyValue('--slpr-vw')) * zoom()"), 3);
+        Assert.Equal(720, page.Number("parseFloat(view.body.style.getPropertyValue('--slpr-vh')) * zoom()"), 3);
+    }
+
     /// <summary>One screen in a frame Root can read, with bags.js loaded and the screen shown.</summary>
     private sealed class Fit
     {
@@ -434,10 +531,14 @@ public class BagFitTests
 
         private readonly Engine _engine = new();
 
-        public Fit(string spec)
+        /// <param name="before">Script run once bags.js is loaded, before the screen is shown.</param>
+        public Fit(string spec, string? before = null)
         {
             _engine.Execute(Fake);
             _engine.Execute(Resource("PackRat.bags.js"));
+
+            if (before != null) _engine.Execute(before);
+
             _engine.Execute("build({ " + spec + " }); window.notifyPageReady('" + Page(spec) + "')");
 
             var warnings = Text("warnings.join(' | ')");

@@ -26,9 +26,9 @@ Very large `CarryWeight` values are capped, because the game can't store a bigge
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| `ScrollBars` | `true` | A bag or storage too big for the screen gets a scrollbar, so the rest of the screen keeps its size. Turn it off and the game shrinks the whole screen until it fits, as it does without Pack Rat. |
+| `ScrollBars` | `true` | A bag or storage too big for the screen gets a scrollbar, so the rest of the screen keeps its size. Turn it off and the whole screen shrinks until it fits instead. |
 
-With `ScrollBars` off, a very big bag can get too small to use, and on some screens the rest of the screen shrinks with it. `ScrollBars` applies right away, even on a screen that is already open.
+With `ScrollBars` off, a very big bag can get too small to use, since the rest of the screen shrinks with it. `ScrollBars` applies right away, even on a screen that is already open.
 
 ## Uninstall
 

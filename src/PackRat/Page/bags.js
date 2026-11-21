@@ -1,8 +1,9 @@
 // Scrolling grids on the game's inventory screens. A grid too big for the window gets a scrollbar instead of the game
 // shrinking the whole screen until it fits. Runs in Root.html, where every screen is a frame of the same origin; a
 // frame is set up just before it is shown (Root's notifyPageReady), so it never shows unfitted.
-// With the ScrollBars setting off (window.__slprBagsScroll(false)) every screen is left to the game, which shrinks a
-// screen too big for the window, and a screen already set up gives its grids back.
+// With the ScrollBars setting off (window.__slprBagsScroll(false)) a screen already set up gives its grids back, and
+// a screen too big for the window is shrunk until it fits instead: most by the game, the rest here (see "ScrollBars
+// off" below).
 (function () {
   if (typeof document.getElementsByTagName !== 'function' || window.__slprBags) return;
   window.__slprBags = true;
@@ -11,6 +12,8 @@
   // The screens set up, and those shown while scrolling was off (set up once it is back on).
   let screens = [];
   let waiting = [];
+  // How each screen is shrunk while scrolling is off.
+  let shrinks = [];
 
   // Some screens place their parts from the grid's rows rather than from what shows. While a screen is cut to fit
   // the window, the page carries data-slpr-own and its "css" turns those placements off, and its "follow" places
@@ -130,6 +133,10 @@
   // under it at its own width, and --slpr-hx moves it back inside the window when the bag is narrower than it.
   const BAG_HINTS = '.bag-panel .trunk-hint{width:0;min-width:calc(100% - 28px)}'
     + '.bottom-hint{width:max-content;left:50%;right:auto;transform:translateX(calc(-50% + var(--slpr-hx,0px)))}';
+  // The game shrinks the bag screen by the size of its panels, and the line of hints hangs 30px under them (an 11px
+  // gap and the line), so a screen shrunk to fit ran the line off the bottom of the window. Room under the panels as
+  // tall as the line makes the game count it.
+  const HINT_ROOM = '.backpack-container:has(.bottom-hint){padding-bottom:30px}';
 
   // Each screen: the element(s) the game fits to the window, its margin, and the grids that may scroll. "boxes" names
   // boxes the screen already wraps its grid in; "follow" places parts the game places from the grid's rows (see
@@ -138,7 +145,8 @@
   // hang under the screen and count toward its height; "hint" names lines that must stay inside the window; "lists"
   // names parts that scroll what they hold, cut shorter when the screen is too tall for the window; "noZoom" marks a
   // screen the game never shrinks; "side" is the game's margin for width when it differs from its margin for height;
-  // "bottom" names grids that fill from the bottom up, so their boxes open scrolled to the bottom.
+  // "bottom" names grids that fill from the bottom up, so their boxes open scrolled to the bottom; "offCss" is added
+  // to the screen's styles while scrolling is off.
   const PAGES = {
     AidDepot: { root: '.hub-root', margin: 48, grids: '#bagGrid,#recvGrid' },
     BrewPanel: { root: '.brew-system', margin: 48, grids: '#bagGrid,#vatGrid', noZoom: true },
@@ -168,12 +176,14 @@
     BackpackUI: {
       root: '.backpack-container', margin: 24, boxes: '.grid-wrapper', follow: followBags,
       sized: '.bag-panel', below: '.bottom-hint', hint: '.bottom-hint',
-      css: OWN_BAGS + BAG_HINTS + '.bag-panel.is-basket-panel .panel{min-width:min-content}',
+      css: OWN_BAGS + BAG_HINTS + '.bag-panel.is-basket-panel .panel{min-width:min-content}', offCss: HINT_ROOM,
     },
-    // The shop's left column hangs out of its slot whenever it is taller than the bag's rows.
+    // The shop's left column hangs out of its slot whenever it is taller than the bag's rows. The dark layer behind the
+    // shop is as big as the window, so it shrinks with the screen unless it is sized from the window again.
     ShopUI: {
       root: '.shop-container', margin: 24, boxes: '.grid-wrapper', follow: followShop, watch: '.left-slot',
       sized: '.left-column', below: '.left-column', lists: '.right-panel', noZoom: true, css: OWN_SHOP,
+      offCss: '.bg-mask{width:var(--slpr-vw,100vw);height:var(--slpr-vh,100vh)}',
     },
   };
 
@@ -243,9 +253,18 @@
 
     if (!cfg) return;
 
-    doc.__slprBags = true;
+    const shrink = shrinkOf(doc, cfg);
 
-    if (scrollOn) start(doc, cfg); else waiting.push({ doc, cfg });
+    doc.__slprBags = true;
+    shrinks.push(shrink);
+
+    if (scrollOn) {
+      start(doc, cfg);
+      return;
+    }
+
+    waiting.push({ doc, cfg });
+    shrink.start();
   }
 
   function start(doc, cfg) {
@@ -262,6 +281,10 @@
 
       try { screens[i].reopen(); } catch (e) { console.warn('[PackRat] bag scroll: ' + e); }
     }
+
+    for (let i = 0; i < shrinks.length; i++) {
+      if (shrinks[i].doc === doc) shrinks[i].refit();
+    }
   }
 
   window.__slprBagsScroll = function (on) {
@@ -271,12 +294,19 @@
 
     scrollOn = on;
     screens = screens.filter(c => alive(c.doc));
+    shrinks = shrinks.filter(c => alive(c.doc));
+
+    // Scrolling grids and a screen shrunk to fit never mix, so one goes before the other starts.
+    if (on) shrinks.forEach(c => c.stop());
 
     for (let i = 0; i < screens.length; i++) {
       try { if (on) screens[i].resume(); else screens[i].stop(); } catch (e) { console.warn('[PackRat] bag scroll: ' + e); }
     }
 
-    if (!on) return;
+    if (!on) {
+      shrinks.forEach(c => c.start());
+      return;
+    }
 
     const shown = waiting;
     waiting = [];
@@ -319,6 +349,123 @@
   const existing = document.getElementsByTagName('iframe');
 
   for (let i = 0; i < existing.length; i++) prepare(existing[i]);
+
+  // ===== ScrollBars off =====
+
+  // With scrolling off, a screen too big for the window is shrunk until it fits, as the game does without Pack Rat.
+  // A screen the game never shrinks (brewing, dyeing, the trap, the shop) ran off the window with a big bag, so it is
+  // shrunk here the way the game shrinks the rest (createViewportFit in webui-bag.js): the body is zoomed by the
+  // smaller of the room for its width over its width and the room for its height over its height, and made as tall
+  // as the window so the screen stays centred. Those screens' own drags already divide by the body's zoom.
+  function shrinkOf(doc, cfg) {
+    const win = doc.defaultView;
+    const body = doc.body;
+    // Taken before the screen is set up for scrolling, which changes it for grids in cut boxes.
+    const rectOf = win.Element.prototype.getBoundingClientRect;
+    const parts = cfg.noZoom ? cfg.root + (cfg.below ? ',' + cfg.below : '') : '';
+    let style = null;
+    let on = false;
+    let lastSizes = '';
+
+    function start() {
+      if (on) return;
+
+      on = true;
+      useOffCss(true);
+      refit();
+    }
+
+    function stop() {
+      if (!on) return;
+
+      on = false;
+      useOffCss(false);
+      lastSizes = '';
+
+      if (parts) unzoom();
+    }
+
+    // Fits the screen again: when it is shown, the window changes size, or a part of it does.
+    function refit() {
+      if (!on || !parts) return;
+
+      lastSizes = sizes();
+      unzoom();
+
+      const size = extent(doc.querySelectorAll(parts), rectOf);
+      const k = size.w && size.h ? Math.min(1, (win.innerWidth - cfg.margin) / size.w, (win.innerHeight - cfg.margin) / size.h) : 1;
+
+      if (k >= 1) return;
+
+      body.style.zoom = String(k);
+      body.style.minHeight = win.innerHeight / k + 'px';
+      // The window's size in the body's shrunk pixels, for parts that must still cover the whole window.
+      body.style.setProperty('--slpr-vw', win.innerWidth / k + 'px');
+      body.style.setProperty('--slpr-vh', win.innerHeight / k + 'px');
+    }
+
+    function unzoom() {
+      body.style.zoom = '';
+      body.style.minHeight = '';
+      body.style.removeProperty('--slpr-vw');
+      body.style.removeProperty('--slpr-vh');
+    }
+
+    // The parts' own sizes, which the zoom doesn't change, so a screen is fitted again only when one of them grows
+    // or shrinks.
+    function sizes() {
+      const els = doc.querySelectorAll(parts);
+      let out = '';
+
+      for (let i = 0; i < els.length; i++) out += els[i].offsetWidth + 'x' + els[i].offsetHeight + ',';
+
+      return out;
+    }
+
+    // Adds or takes off the styles a screen gets while scrolling is off, then sends a resize so the game fits it again.
+    function useOffCss(use) {
+      if (!cfg.offCss) return;
+
+      if (!style) {
+        style = doc.createElement('style');
+        style.id = 'slpackrat-bag-shrink';
+        style.textContent = cfg.offCss;
+        (doc.head || doc.documentElement).appendChild(style);
+      }
+
+      style.disabled = !use;
+      win.dispatchEvent(new win.Event('resize'));
+    }
+
+    if (parts) {
+      const ro = new win.ResizeObserver(() => { if (on && sizes() !== lastSizes) refit(); });
+      const els = doc.querySelectorAll(parts);
+
+      for (let i = 0; i < els.length; i++) ro.observe(els[i]);
+
+      win.addEventListener('resize', refit);
+    }
+
+    return { doc, start, stop, refit };
+  }
+
+  // The box round every element given that shows, in the window's pixels.
+  function extent(els, rectOf) {
+    let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+
+    for (let i = 0; i < els.length; i++) {
+      const r = rectOf.call(els[i]);
+
+      if (!r.width && !r.height) continue;
+
+      left = Math.min(left, r.left);
+      top = Math.min(top, r.top);
+      right = Math.max(right, r.right);
+      bottom = Math.max(bottom, r.bottom);
+    }
+
+    return right > left ? { w: right - left, h: bottom - top } : { w: 0, h: 0 };
+  }
 
   // ===== One screen =====
 

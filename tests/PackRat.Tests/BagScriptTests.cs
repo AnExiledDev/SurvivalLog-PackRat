@@ -132,7 +132,10 @@ public class BagScriptTests
         public Frames() : base("""
             var queued = [];
             var element = function () {
-              return { style: {}, hasAttribute: function () { return false; }, setAttribute: function () {}, removeAttribute: function () {} };
+              return {
+                style: { setProperty: function () {}, removeProperty: function () {} },
+                hasAttribute: function () { return false; }, setAttribute: function () {}, removeAttribute: function () {}
+              };
             };
             // An element that keeps its attributes and style properties.
             var kept = function () {

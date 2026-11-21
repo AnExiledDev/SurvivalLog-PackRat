@@ -37,7 +37,7 @@ internal sealed class WebPage
         _page.Install();
     }
 
-    /// <summary>The ScrollBars setting: on, big grids scroll; off, the game shrinks the screen to fit.</summary>
+    /// <summary>The ScrollBars setting: on, big grids scroll; off, the screen shrinks to fit.</summary>
     public void SetScrollBars(bool on)
     {
         _scrollBars = on;

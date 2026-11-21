@@ -151,7 +151,11 @@
     AidDepot: { root: '.hub-root', margin: 48, grids: '#bagGrid,#recvGrid' },
     BrewPanel: { root: '.brew-system', margin: 48, grids: '#bagGrid,#vatGrid', noZoom: true },
     Compressor: { root: '#app', margin: 24, grids: '#cartGrid,#binGrid,#trayGrid' },
-    Cooking: { root: '.cooking-system', margin: 48, grids: '#backpackGrid,#mainPotGrid', css: OWN_COOK },
+    // The stove's row of panels hides what overflows it, so it squeezed to the window's width instead of growing with
+    // a wide bag. The game then measured the squeezed row, didn't shrink the screen, and the recipe book was cut off at
+    // the right edge. While scrolling is off the row is held as wide as its panels, as it is while scrolling is on, and
+    // the game shrinks the screen to fit it.
+    Cooking: { root: '.cooking-system', margin: 48, grids: '#backpackGrid,#mainPotGrid', css: OWN_COOK, offCss: '.cooking-system{min-width:max-content}' },
     DailyFert: { root: '.df-root', margin: 48, grids: '#bagGrid' },
     DroneHub: { root: '.hub-root', margin: 48, grids: '#bagGrid,#storeGrid', racks: { '#bagGrid': '#bagRack' } },
     DyePanel: { root: '.dye-system', margin: 48, grids: '#bagGrid,#vatGrid', noZoom: true },

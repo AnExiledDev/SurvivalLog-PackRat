@@ -45,7 +45,7 @@ public class BagScriptTests
 
     /// <summary>
     /// ScrollBars off: the game alone fits the screen, as without the mod. A screen shown while it is off gets none of
-    /// Pack Rat's styles, and gets them once it is turned back on.
+    /// Pack Rat's scrolling styles, and gets them once it is turned back on.
     /// </summary>
     [Fact]
     public void A_screen_shown_with_scroll_bars_off_is_left_to_the_game_until_they_are_on()
@@ -56,12 +56,12 @@ public class BagScriptTests
         page.Run("window.notifyPageReady('Cooking')");
 
         Assert.Equal("Cooking", page.Text("shown.join(',')"));
-        Assert.Equal("0", page.Text("styles.length"));
+        Assert.Equal("0", page.Text("scrollStyles().length"));
 
         page.Run(BagScroll.Script(true));
 
-        Assert.Equal("1", page.Text("styles.length"));
-        Assert.Equal("false", page.Text("styles[0].disabled === true"));
+        Assert.Equal("1", page.Text("scrollStyles().length"));
+        Assert.Equal("false", page.Text("scrollStyles()[0].disabled === true"));
     }
 
     /// <summary>
@@ -74,17 +74,17 @@ public class BagScriptTests
         var page = new Screen();
 
         page.Run("window.notifyPageReady('Cooking')");
-        Assert.Equal("1", page.Text("styles.length"));
+        Assert.Equal("1", page.Text("scrollStyles().length"));
 
         page.Run(BagScroll.Script(false));
 
-        Assert.Equal("true", page.Text("styles[0].disabled === true"));
-        Assert.Equal("resize", page.Text("events.join(',')"));
+        Assert.Equal("true", page.Text("scrollStyles()[0].disabled === true"));
+        Assert.Matches("^resize(,resize)*$", page.Text("events.join(',')"));
 
         page.Run(BagScroll.Script(true));
 
-        Assert.Equal("1", page.Text("styles.length"));
-        Assert.Equal("false", page.Text("styles[0].disabled === true"));
+        Assert.Equal("1", page.Text("scrollStyles().length"));
+        Assert.Equal("false", page.Text("scrollStyles()[0].disabled === true"));
     }
 
     /// <summary>
@@ -194,6 +194,8 @@ public class BagScriptTests
         public Screen() : base("""
             var styles = [];
             var events = [];
+            // Pack Rat's scrolling styles; the stove has a style of its own for while scrolling is off.
+            var scrollStyles = function () { return styles.filter(function (s) { return s.id === 'slpackrat-bag-scroll'; }); };
             var element = function () {
               return { style: {}, hasAttribute: function () { return false; }, setAttribute: function () {}, removeAttribute: function () {} };
             };

@@ -269,6 +269,28 @@ public class BagFitTests
     }
 
     /// <summary>
+    /// The stove's row of panels hides what overflows it, so with a wide bag it squeezed to the window and the game,
+    /// measuring the squeezed row, never shrank the screen: the recipe book was cut off at the right edge. While
+    /// ScrollBars is off the row keeps its full width so the game shrinks the screen to fit, and with it back on it
+    /// squeezes again and the bag scrolls.
+    /// </summary>
+    [Fact]
+    public void With_scrollbars_off_the_stove_keeps_its_full_width_for_the_game_to_shrink()
+    {
+        var page = new Fit("page: 'Cooking', root: '.cooking-system', w: 1280, h: 720, parts: [{ grid: '#backpackGrid', w: 1000, h: 300 }]");
+        const string row = "frame.contentDocument.head.children.filter(function (c) { return c.id === 'slpackrat-bag-shrink'; })[0]";
+
+        page.Run("window.__slprBagsScroll(false)");
+
+        Assert.Contains(".cooking-system{min-width:max-content}", page.Text(row + ".textContent"));
+        Assert.Equal("false", page.Text(row + ".disabled"));
+
+        page.Run("window.__slprBagsScroll(true)");
+
+        Assert.Equal("true", page.Text(row + ".disabled"));
+    }
+
+    /// <summary>
     /// The shop's dark layer is as big as the window, so a shrunk shop drew it smaller and left part of the window
     /// uncovered. While the shop is shrunk the layer is sized from the window's size in the shrunk pixels, which comes
     /// back to the whole window once shrunk.

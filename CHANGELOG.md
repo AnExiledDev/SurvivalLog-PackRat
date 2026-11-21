@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.7
+
+- With `ScrollBars` off and a wide bag, the stove screen now shrinks to fit the window. Before, the recipe book was cut off at the right edge.
+- Made for Survival Log 1.1.21671.
+
 ## 0.5.6
 
 - With `ScrollBars` off, the brewing, dyeing, trap and shop screens now shrink to fit the window too. Before, a big bag ran them off the edge of the screen.

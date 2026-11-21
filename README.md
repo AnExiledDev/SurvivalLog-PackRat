@@ -65,7 +65,7 @@ See [CONFIG.md](CONFIG.md) for every setting.
 
 Pack Rat writes to `BepInEx\LogOutput.log`. Check it for these lines:
 
-- `Pack Rat 0.5.6 started` when the game starts.
+- `Pack Rat 0.5.7 started` when the game starts.
 - `hooked the world start`, `hooked the item load` and `hooked the overflow drop` right after. A line starting with `could not hook` instead means a game update broke part of the mod. The rest of that line says what happens instead.
 - `world start: tables written: ...` and `item load: tables written: ...` each time you load a save, with how many limits, grids, sizes and weights changed.
 - `applied in game: ...` each time you change a setting during a game, with how many items were resized, moved or had no room.

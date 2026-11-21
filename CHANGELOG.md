@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.4
+
+- Fixed: the car trunk and big storage screens shrank everything to fit. Your bag and the storage now stay full size and scroll instead.
+- Fixed: the bag and the car trunk could be squeezed into thin strips. A screen that really can't fit now shrinks the way it does without Pack Rat.
+- Scroll bars now sit right next to the grid instead of at the far edge of a wide panel.
+- The bag and shop screens now start below the clock, so the clock no longer covers the top of them.
+- The note on the car trunk screen now wraps inside the trunk panel instead of making it wider.
+- The key hints under your bag now always stay on screen.
+- With storage or the car trunk open next to your bag, the key hints wrap to fit under the bag, so they no longer cover the buttons at the bottom of the screen.
+- Made for Survival Log 1.1.21671.
+
 ## 0.5.3
 
 - Mod Manager's Conflicts tab can now see what Pack Rat changes in the game, like item sizes and weights and how much each bag holds, so it can show when another mod changes the same things.

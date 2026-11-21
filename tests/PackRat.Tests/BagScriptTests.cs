@@ -87,6 +87,130 @@ public class BagScriptTests
         Assert.Equal("false", page.Text("styles[0].disabled === true"));
     }
 
+    /// <summary>
+    /// The bag screen sits below the clock, and the clock fades out and back with the HUD. Root does that through the
+    /// HUD frame's style, so a change there fits an open bag screen again.
+    /// </summary>
+    [Fact]
+    public void An_open_bag_screen_fits_again_when_the_HUD_fades_or_comes_back()
+    {
+        var page = new Frames();
+
+        page.Run("window.notifyPageReady('CoreUI0'); window.notifyPageReady('Backpack')");
+        page.Run("queued.splice(0).forEach(function (f) { f(); })");
+
+        Assert.Equal("Backpack,CoreUI0", page.Text("shown.slice().sort().join(',')"));
+        Assert.Equal("function", page.Text("typeof hudWatch"));
+
+        page.Run("hudWatch()");
+
+        Assert.Equal("1", page.Text("queued.length"));
+    }
+
+    /// <summary>
+    /// Turned off while the bag screen is open, the line of hints under the bag goes back to how the game lays it
+    /// out: it no longer wraps to the bag's width or sits moved to one side.
+    /// </summary>
+    [Fact]
+    public void Turning_scroll_bars_off_puts_the_hints_under_the_bag_back()
+    {
+        var page = new Frames();
+
+        page.Run("window.notifyPageReady('Backpack')");
+        page.Run("queued.splice(0).forEach(function (f) { f(); })");
+        page.Run("hint.setAttribute('data-slpr-wrap', ''); hint.style.setProperty('--slpr-hx', '40px')");
+
+        page.Run(BagScroll.Script(false));
+
+        Assert.Equal("false", page.Text("hint.hasAttribute('data-slpr-wrap')"));
+        Assert.Equal("", page.Text("hint.style.getPropertyValue('--slpr-hx')"));
+    }
+
+    /// <summary>
+    /// The shop's store list can be cut shorter so the screen fits below the clock. Turned off while the shop is open,
+    /// the list gets back the height the game gives it.
+    /// </summary>
+    [Fact]
+    public void Turning_scroll_bars_off_gives_the_shop_list_its_height_back()
+    {
+        var page = new Frames();
+
+        page.Run("window.notifyPageReady('ShopUI')");
+        page.Run("queued.splice(0).forEach(function (f) { f(); })");
+        page.Run("list.setAttribute('data-slpr-cut', ''); list.style.setProperty('--slpr-lh', '400px')");
+
+        page.Run(BagScroll.Script(false));
+
+        Assert.Equal("false", page.Text("list.hasAttribute('data-slpr-cut')"));
+        Assert.Equal("", page.Text("list.style.getPropertyValue('--slpr-lh')"));
+    }
+
+    /// <summary>
+    /// Root with the HUD (CoreUI0, which holds the clock), the bag screen and the shop, each in a frame it can read.
+    /// </summary>
+    private sealed class Frames : Page
+    {
+        public Frames() : base("""
+            var queued = [];
+            var hudWatch = null;
+            var element = function () {
+              return { style: {}, hasAttribute: function () { return false; }, setAttribute: function () {}, removeAttribute: function () {} };
+            };
+            // An element that keeps its attributes and style properties.
+            var kept = function () {
+              var attrs = {}, props = {};
+              return {
+                style: {
+                  getPropertyValue: function (name) { return props[name] || ''; },
+                  setProperty: function (name, value) { props[name] = value; },
+                  removeProperty: function (name) { delete props[name]; }
+                },
+                hasAttribute: function (name) { return name in attrs; },
+                setAttribute: function (name, value) { attrs[name] = String(value); },
+                removeAttribute: function (name) { delete attrs[name]; }
+              };
+            };
+            // The line of hints under the bag, and the shop's store list.
+            var hint = kept();
+            var list = kept();
+            var parts = { '.bottom-hint': hint, '.right-panel': list };
+            var pageDoc = function (path) {
+              return {
+                location: { pathname: path },
+                body: element(),
+                documentElement: element(),
+                head: { appendChild: function () {} },
+                createElement: function () { return element(); },
+                querySelectorAll: function (sel) { return parts[sel] ? [parts[sel]] : []; },
+                querySelector: function () { return null; },
+                getElementById: function () { return null; },
+                defaultView: {
+                  innerWidth: 1920,
+                  innerHeight: 1080,
+                  Element: { prototype: { getBoundingClientRect: function () { return {}; } } },
+                  ResizeObserver: function () { this.observe = function () {}; this.unobserve = function () {}; },
+                  MutationObserver: function () { this.observe = function () {}; },
+                  Event: function (type) { this.type = type; },
+                  addEventListener: function () {},
+                  dispatchEvent: function () {},
+                  requestAnimationFrame: function (f) { queued.push(f); return queued.length; },
+                  getComputedStyle: function () { return {}; }
+                }
+              };
+            };
+            var hud = { tagName: 'IFRAME', style: {}, contentDocument: pageDoc('/CoreUI0.html') };
+            var bag = { tagName: 'IFRAME', style: {}, contentDocument: pageDoc('/BackpackUI.html') };
+            var shop = { tagName: 'IFRAME', style: {}, contentDocument: pageDoc('/ShopUI.html') };
+            window.MutationObserver = function (callback) {
+              this.observe = function (target) { if (target === hud) hudWatch = callback; };
+            };
+            document.getElementById = function (id) { return id === 'CoreUI0' ? hud : id === 'ShopUI' ? shop : bag; };
+            window.notifyPageReady = function (id) { shown.push(id); };
+            """)
+        {
+        }
+    }
+
     /// <summary>Root, plus one inventory screen (the Cooking Station) with no grids in it yet, in a frame it can read.</summary>
     private sealed class Screen : Page
     {

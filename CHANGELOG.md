@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.5
+
+- The bag and shop screens use the whole window again instead of starting below the clock, so more of your bag shows before it needs to scroll.
+- The key hints under your bag stay on one line again.
+- With things lying on the ground nearby, the screen moves up to make room for the strip that shows them, so the strip no longer covers the bottom of your bag.
+- A screen only a little too wide for the window is now shrunk a little instead of cutting a column off your bag.
+- On a small window, a screen too tall to fit is now drawn a little smaller with its grids scrolling, instead of shrinking to about half size.
+- The material rack's rows now scroll, so the screen no longer gets smaller as the rack fills up.
+- The trash can's pit now scrolls and opens at the bottom where the pile is, so the screen no longer gets smaller as the pile grows.
+- Fixed: the key hints under a very full bag could still run off the bottom of the window.
+- Fixed: on a small window the trap screen cut your bag and the storage box down to one row. Your bag now fills the window's height, and the storage box keeps all its rows.
+- Made for Survival Log 1.1.21671.
+
 ## 0.5.4
 
 - Fixed: the car trunk and big storage screens shrank everything to fit. Your bag and the storage now stay full size and scroll instead.

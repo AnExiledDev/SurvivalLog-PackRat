@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ExiledToolkit.Kit;
 using ExiledToolkit.Web;
 using PackRat.Core;
 using UnityEngine;
@@ -20,6 +21,13 @@ public sealed class Ticker : MonoBehaviour
     internal static Tabs? Tabs;
     internal static Action<string> Log = _ => { };
     private static readonly HashSet<string> ReportedFailures = new();
+    private static readonly double LoadedAt = Clock.Now;
+
+    /// <summary>
+    /// Real seconds since the mod loaded, from the Toolkit clock. Counted from load so a float keeps its precision
+    /// however long the computer has been on.
+    /// </summary>
+    internal static float Now => (float)(Clock.Now - LoadedAt);
 
     public Ticker(IntPtr pointer) : base(pointer)
     {
@@ -29,7 +37,7 @@ public sealed class Ticker : MonoBehaviour
     {
         try
         {
-            var now = Time.unscaledTime;
+            var now = Now;
 
             Page?.KeepInstalled(now);
 

@@ -14,7 +14,7 @@ namespace PackRat;
 public sealed class Plugin : BasePlugin
 {
     internal const string Guid = "com.dev.survivallog.packrat";
-    private const string Version = "0.5.9";
+    private const string Version = "0.5.10";
     private const string ToolkitGuid = "com.dev.survivallog.exiledtoolkit";
     private const string ToolkitVersion = ">=0.25.0";
 

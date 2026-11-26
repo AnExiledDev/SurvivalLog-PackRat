@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.10
+
+- Small speed up: the mod reads the time in a cheaper way.
+- Made for Survival Log 1.1.21671.
+
 ## 0.5.9
 
 - Away from home, items that no longer fit now go on the floor, the way the game drops them. Before, Pack Rat put them in shopping bags back home while you were out.

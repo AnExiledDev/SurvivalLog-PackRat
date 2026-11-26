@@ -54,7 +54,7 @@ Pack Rat writes nothing into your save and does not edit game files. Before you 
 [/list]
 
 [size=5]Uninstall[/size]
-If you changed bag or item sizes, turn on [font=Courier New]UninstallPrep[/font] first and load your save. When the message says Pack Rat is safe to remove, save the game and quit. Then delete [font=Courier New]PackRat.dll[/font] from the [font=Courier New]BepInEx\plugins[/font] folder.
+If you changed bag or item sizes, turn on [font=Courier New]UninstallPrep[/font] first, load your save, and go home if you're out. When the message says Pack Rat is safe to remove, save the game and quit. Then delete [font=Courier New]PackRat.dll[/font] from the [font=Courier New]BepInEx\plugins[/font] folder.
 
 [size=5]Configuration[/size]
 Bag and item sizes are set on the Inventories and Items tabs in Mod Manager. The other settings ([font=Courier New]CarryWeight[/font], [font=Courier New]ItemWeight[/font], [font=Courier New]Overweight[/font], [font=Courier New]UninstallPrep[/font]) are on the Mods screen, or in [font=Courier New]BepInEx\config\com.dev.survivallog.packrat.cfg[/font] while the game is closed (see [url=https://github.com/AnExiledDev/SurvivalLog-PackRat/blob/main/CONFIG.md]CONFIG.md[/url] for details). In a game, changes apply right away. Otherwise they apply when you load a save.
@@ -117,7 +117,7 @@ Pack Rat 不会往存档里写入任何内容，也不会修改游戏文件。�
 [/list]
 
 [size=5]卸载[/size]
-如果改过背包或物品的大小，请先打开 [font=Courier New]UninstallPrep[/font] 并读取存档。看到可以安全移除的提示后，存档并退出游戏，再从 [font=Courier New]BepInEx\plugins[/font] 文件夹中删除 [font=Courier New]PackRat.dll[/font]。
+如果改过背包或物品的大小，请先打开 [font=Courier New]UninstallPrep[/font] 并读取存档，如果在外面就先回家。看到可以安全移除的提示后，存档并退出游戏，再从 [font=Courier New]BepInEx\plugins[/font] 文件夹中删除 [font=Courier New]PackRat.dll[/font]。
 
 [size=5]配置[/size]
 背包和物品的大小在 Mod Manager 的「库存」和「物品」页面设置。其他设置（[font=Courier New]CarryWeight[/font]、[font=Courier New]ItemWeight[/font]、[font=Courier New]Overweight[/font]、[font=Courier New]UninstallPrep[/font]）在「模组」界面修改，也可以在游戏关闭时编辑 [font=Courier New]BepInEx\config\com.dev.survivallog.packrat.cfg[/font]。配置文件中的设置有中文说明，完整说明见 [url=https://github.com/AnExiledDev/SurvivalLog-PackRat/blob/main/CONFIG.md]CONFIG.md[/url]（英文）。在游戏中改动会立即生效，否则在读取存档时生效。

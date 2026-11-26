@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.9
+
+- Away from home, items that no longer fit now go on the floor, the way the game drops them. Before, Pack Rat put them in shopping bags back home while you were out.
+- With `UninstallPrep` on, a load while you're out no longer says Pack Rat is safe to remove. Your storage at home only gets the game's values when you're home, so the message now tells you to go home and save there first.
+- Made for Survival Log 1.1.21671.
+
 ## 0.5.8
 
 - Changing a bag setting in the middle of a game now gives storage and the car trunk their own weight limit and slot count. Before, every one of them got the limit of the shopping bags by the door.

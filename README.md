@@ -48,7 +48,7 @@ Pack Rat writes nothing into your save and does not edit game files. The new siz
 If you made bags smaller or larger, or changed item sizes, do this first so nothing is lost:
 
 1. Turn on `UninstallPrep` (on the Mods screen, or in the config file while the game is closed).
-2. Load your save. A message says Pack Rat is safe to remove. Items that no longer fit are in the shopping bags in the living room.
+2. Load your save, and go home if you're out. At home, a message says Pack Rat is safe to remove. Items that no longer fit are in the shopping bags in the living room.
 3. Save the game and quit.
 
 Then delete `PackRat.dll` from the `BepInEx\plugins` folder. For a clean slate, also delete `com.dev.survivallog.packrat.cfg`, `PackRat.Inventories.json` and `PackRat.Items.json` from `BepInEx\config`.

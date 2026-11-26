@@ -11,7 +11,8 @@ namespace PackRat.Adapters;
 /// While a save loads, an item that no longer fits its bag (the grid shrank or the item grew) would be dropped on the
 /// floor wherever the player stands. Pack Rat holds it back instead: the game keeps it in its bag, out of place, and
 /// once the player is in the world it goes into the living-room shopping bags, the way the game unloads the car.
-/// Only if both shopping bags are full does it go on the floor after all.
+/// Only if both shopping bags are full does it go on the floor after all. Away from home there are no shopping bags, so
+/// it goes on the floor, as it would without Pack Rat.
 /// </summary>
 internal static class Overflow
 {
@@ -93,9 +94,12 @@ internal static class Overflow
     {
         var items = world._ItemManager;
         var agents = world._AgentManager;
-        int toBags = 0, toFloor = 0, stuck = 0;
 
-        if (items == null || agents == null) return new Placed(0, 0, overflow.Count);
+        if (items == null || agents == null) return new Placed(0, 0, overflow.Count, false);
+
+        // The game only ever makes the shopping bags on the home map, even when the player is somewhere else.
+        var isHome = agents.IsHomeMap(ExploreSearchStateManager.GetCurrentMapId());
+        int toBags = 0, toFloor = 0, stuck = 0;
 
         foreach (var item in overflow)
         {
@@ -103,14 +107,14 @@ internal static class Overflow
 
             if (items.GetItemData(id) == null) continue;
 
-            if (IntoShoppingBag(items, agents, player, item, id)) toBags++;
+            if (isHome && IntoShoppingBag(items, agents, player, item, id)) toBags++;
             else if (OntoFloor(world, items, item, id)) toFloor++;
             else stuck++;
         }
 
         if (toBags > 0) player.PushDoorBoxToRedux();
 
-        return new Placed(toBags, toFloor, stuck);
+        return new Placed(toBags, toFloor, stuck, isHome);
     }
 
     private static bool IntoShoppingBag(ItemManager items, AgentManager agents, LeadingRole player, ItemData item, long id)
@@ -156,8 +160,8 @@ internal static class Overflow
         return false;
     }
 
-    /// <summary>How the items that did not fit were placed after a load.</summary>
-    public readonly record struct Placed(int ToShoppingBags, int ToFloor, int LeftInPlace)
+    /// <summary>How the items that did not fit were placed, and whether the player was at home.</summary>
+    public readonly record struct Placed(int ToShoppingBags, int ToFloor, int LeftInPlace, bool IsHome)
     {
         public int Total => ToShoppingBags + ToFloor + LeftInPlace;
     }

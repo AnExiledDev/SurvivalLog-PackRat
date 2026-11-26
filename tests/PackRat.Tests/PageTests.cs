@@ -106,22 +106,41 @@ public class TextsTests
     [Fact]
     public void A_load_with_nothing_moved_says_nothing()
     {
-        Assert.Null(Texts.AfterLoad(false, 0, 0, 0, zh: false));
+        Assert.Null(Texts.AfterLoad(Prep.Off, 0, 0, 0, zh: false));
     }
 
     [Fact]
-    public void Uninstall_prep_always_says_it_is_safe_to_remove()
+    public void Uninstall_prep_after_a_load_at_home_says_it_is_safe_to_remove()
     {
-        var toast = Texts.AfterLoad(true, 0, 0, 0, zh: false);
+        var toast = Texts.AfterLoad(Prep.Done, 0, 0, 0, zh: false);
 
         Assert.Equal("Pack Rat is safe to remove", toast?.Title);
         Assert.Contains("Save the game", toast?.Body);
     }
 
     [Fact]
+    public void Uninstall_prep_away_from_home_says_to_save_at_home_first()
+    {
+        var toast = Texts.AfterLoad(Prep.NotHome, 0, 2, 0, zh: false);
+
+        Assert.Equal("Pack Rat is not safe to remove yet", toast?.Title);
+        Assert.Contains("2 went on the floor.", toast?.Body);
+        Assert.EndsWith("Save at home, then remove the mod.", toast?.Body);
+    }
+
+    [Fact]
+    public void Only_a_load_at_home_that_wrote_the_tables_finishes_the_prep()
+    {
+        Assert.Equal(Prep.Done, Texts.PrepAfterLoad(isUninstallPrep: true, isWritten: true, isHome: true));
+        Assert.Equal(Prep.NotHome, Texts.PrepAfterLoad(isUninstallPrep: true, isWritten: true, isHome: false));
+        Assert.Equal(Prep.Off, Texts.PrepAfterLoad(isUninstallPrep: true, isWritten: false, isHome: true));
+        Assert.Equal(Prep.Off, Texts.PrepAfterLoad(isUninstallPrep: false, isWritten: true, isHome: true));
+    }
+
+    [Fact]
     public void Moved_items_are_counted_by_where_they_went()
     {
-        var toast = Texts.AfterLoad(false, 3, 1, 0, zh: false);
+        var toast = Texts.AfterLoad(Prep.Off, 3, 1, 0, zh: false);
 
         Assert.Equal("4 items no longer fit", toast?.Title);
         Assert.Equal("3 went into the shopping bags in the living room, 1 went on the floor.", toast?.Body);
@@ -130,7 +149,7 @@ public class TextsTests
     [Fact]
     public void Chinese_counts_each_place()
     {
-        var toast = Texts.AfterLoad(false, 2, 0, 1, zh: true);
+        var toast = Texts.AfterLoad(Prep.Off, 2, 0, 1, zh: true);
 
         Assert.Equal("3 件物品放不下了", toast?.Title);
         Assert.Equal("2 件装进了客厅的购物袋。1 件留在了原来的背包里。", toast?.Body);

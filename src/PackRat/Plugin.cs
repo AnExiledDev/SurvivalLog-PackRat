@@ -14,7 +14,7 @@ namespace PackRat;
 public sealed class Plugin : BasePlugin
 {
     internal const string Guid = "com.dev.survivallog.packrat";
-    private const string Version = "0.5.8";
+    private const string Version = "0.5.9";
     private const string ToolkitGuid = "com.dev.survivallog.exiledtoolkit";
     private const string ToolkitVersion = ">=0.25.0";
 
@@ -41,20 +41,21 @@ public sealed class Plugin : BasePlugin
         AddComponent<Ticker>();
     }
 
-    private void AfterLoad(Overflow.Placed placed) => Report("after the load", _settings?.IsUninstallPrep == true && LoadHooks.IsWritten, placed);
+    private void AfterLoad(Overflow.Placed placed) => Report("after the load", Texts.PrepAfterLoad(_settings?.IsUninstallPrep == true, LoadHooks.IsWritten, placed.IsHome), placed);
 
-    private void AfterChange(Overflow.Placed placed) => Report("after a change", false, placed);
+    private void AfterChange(Overflow.Placed placed) => Report("after a change", Prep.Off, placed);
 
-    private void Report(string when, bool isPrep, Overflow.Placed placed)
+    private void Report(string when, Prep prep, Overflow.Placed placed)
     {
         if (placed.Total > 0) Write($"{when}: {placed.ToShoppingBags} items went into the shopping bags, {placed.ToFloor} on the floor, {placed.LeftInPlace} stayed where they were");
+        if (prep == Prep.NotHome) Write("Uninstall prep: this load was away from home, so home storage gets the game's values on the next load at home");
 
         var zh = GameLanguage.IsChinese();
 
-        if (Texts.AfterLoad(isPrep, placed.ToShoppingBags, placed.ToFloor, placed.LeftInPlace, zh) is not { } toast) return;
+        if (Texts.AfterLoad(prep, placed.ToShoppingBags, placed.ToFloor, placed.LeftInPlace, zh) is not { } toast) return;
 
         var (title, body) = toast;
-        var kind = isPrep ? ToastKind.Success : placed.LeftInPlace > 0 || placed.ToFloor > 0 ? ToastKind.Warning : ToastKind.Info;
+        var kind = prep == Prep.Done ? ToastKind.Success : prep == Prep.NotHome || placed.LeftInPlace > 0 || placed.ToFloor > 0 ? ToastKind.Warning : ToastKind.Info;
 
         try
         {

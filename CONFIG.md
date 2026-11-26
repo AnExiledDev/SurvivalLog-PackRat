@@ -36,7 +36,7 @@ With `ScrollBars` off, a very big bag can get too small to use, since the rest o
 | --- | --- | --- |
 | `UninstallPrep` | `false` | Turn it on before you remove Pack Rat. The next save you load gets the game's sizes and weights back. |
 
-With `UninstallPrep` on, items that no longer fit in a smaller bag go into the shopping bags in the living room, or onto the floor if those are full. A message then says Pack Rat is safe to remove. Save the game, quit, and delete the mod.
+With `UninstallPrep` on, items that no longer fit in a smaller bag go into the shopping bags in the living room, or onto the floor if those are full. After a load at home, a message says Pack Rat is safe to remove. A load while you're out doesn't reach your storage at home, so the message tells you to go home and save there first. Save the game, quit, and delete the mod.
 
 ## The Inventories and Items tabs
 

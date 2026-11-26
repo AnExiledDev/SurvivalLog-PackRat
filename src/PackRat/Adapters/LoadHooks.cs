@@ -66,12 +66,18 @@ internal static class LoadHooks
         }
     }
 
+    /// <summary>True when the last write reached the game's tables, so Uninstall prep only says it is safe once it is.</summary>
+    public static bool IsWritten { get; private set; }
+
     private static void WriteTables(string when)
     {
+        IsWritten = false;
+
         try
         {
             var line = GameTables.Write(_settings());
 
+            IsWritten = line != null;
             _log(line == null ? $"{when}: the game's tables are not loaded yet" : $"{when}: {line}");
         }
         catch (Exception ex)

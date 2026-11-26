@@ -65,8 +65,16 @@ internal static class LiveApply
         var player = world?._AgentManager?.GetLeadingRole();
         var items = world?._ItemManager;
 
-        // Outside a game, or while one loads, the load writes the tables itself.
-        if (world == null || player == null || items == null || !Overflow.IsIdle) return;
+        // Outside a game the next load writes the tables itself.
+        if (world == null || player == null || items == null) return;
+
+        // A load already wrote the tables, so a change made before its items are placed waits for them.
+        if (!Overflow.IsIdle)
+        {
+            _isWanted = true;
+
+            return;
+        }
 
         var cache = items._Cache_k__BackingField;
 
@@ -132,10 +140,11 @@ internal static class LiveApply
     /// <summary>Bags, storage and the shopping bags copy their weight limit when they are made.</summary>
     private static int RefreshLimits(AgentManager? agents)
     {
-        var bags = GameSingleton.Existing<ConfigManager>()?._Config_Bag_Dict;
+        var config = GameSingleton.Existing<ConfigManager>();
+        var bags = config?._Config_Bag_Dict;
         var list = agents?._agentList_k__BackingField;
 
-        if (bags == null || list == null) return 0;
+        if (config == null || bags == null || list == null) return 0;
 
         var count = 0;
 
@@ -153,7 +162,7 @@ internal static class LiveApply
 
             var box = AgentTools.GetAgentComponent<BagStateComponent>(agent);
 
-            if (box == null || !bags.TryGetValue(DoorBoxBagId, out var boxRow) || boxRow == null) continue;
+            if (box == null || !bags.TryGetValue(BoxBagId(agent, config), out var boxRow) || boxRow == null) continue;
 
             box._BagBurden_k__BackingField = boxRow._Burden_k__BackingField;
 
@@ -163,6 +172,21 @@ internal static class LiveApply
         }
 
         return count;
+    }
+
+    /// <summary>
+    /// The bag row the game used for this box when it was made: the shopping bags by the door use one row, the car
+    /// trunk uses the row for the car's grade, and any other storage uses its own furniture row.
+    /// </summary>
+    private static int BoxBagId(BaseAgent agent, ConfigManager config)
+    {
+        if (agent.TryCast<BagFurniture>() != null) return DoorBoxBagId;
+
+        var configId = agent._AgentConfigId_k__BackingField;
+
+        if (VehicleConfig.IsTrunkCartConfigId(configId)) return VehicleConfig.GetTrunkBagId(VehicleConfig.GetOwnedGrade());
+
+        return config.Get_Config_Furniture(configId)?._BagId_k__BackingField ?? 0;
     }
 
     /// <summary>The game keeps each bag's weight as a running total, so a new item weight goes in as the difference.</summary>

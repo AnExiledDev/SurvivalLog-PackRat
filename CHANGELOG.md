@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.8
+
+- Changing a bag setting in the middle of a game now gives storage and the car trunk their own weight limit and slot count. Before, every one of them got the limit of the shopping bags by the door.
+- A change made just after a load is no longer lost. It's applied once the load is done.
+- With `UninstallPrep` on, the "safe to remove" message only shows once the game's values are really back.
+- Made for Survival Log 1.1.21671.
+
 ## 0.5.7
 
 - With `ScrollBars` off and a wide bag, the stove screen now shrinks to fit the window. Before, the recipe book was cut off at the right edge.

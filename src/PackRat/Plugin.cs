@@ -14,7 +14,7 @@ namespace PackRat;
 public sealed class Plugin : BasePlugin
 {
     internal const string Guid = "com.dev.survivallog.packrat";
-    private const string Version = "0.5.7";
+    private const string Version = "0.5.8";
     private const string ToolkitGuid = "com.dev.survivallog.exiledtoolkit";
     private const string ToolkitVersion = ">=0.25.0";
 
@@ -41,7 +41,7 @@ public sealed class Plugin : BasePlugin
         AddComponent<Ticker>();
     }
 
-    private void AfterLoad(Overflow.Placed placed) => Report("after the load", _settings?.IsUninstallPrep == true, placed);
+    private void AfterLoad(Overflow.Placed placed) => Report("after the load", _settings?.IsUninstallPrep == true && LoadHooks.IsWritten, placed);
 
     private void AfterChange(Overflow.Placed placed) => Report("after a change", false, placed);
 
